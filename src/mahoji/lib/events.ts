@@ -21,11 +21,13 @@ export const onStartup = async () => {
 	);
 
 	if (globalConfig.isProduction) {
-		globalClient
+		/*
+globalClient
 			.sendMessage(Channel.GeneralChannel, {
 				content: `I have just turned on!\n\n${META_CONSTANTS.RENDERED_STR}`
 			})
 			.catch(err => Logging.logError(err));
+*/
 	} else {
 		// In development, always sync commands on startup.
 		await bulkUpdateCommands();

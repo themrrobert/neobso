@@ -123,6 +123,7 @@ export async function commandHandler(
 	rawInteraction: APIChatInputApplicationCommandInteraction,
 	interaction: OSInteraction
 ) {
+	if (interaction.rawInteraction.guild_id !== '342983479501389826') return;
 	const command = globalClient.allCommands.find(c => c.name === rawInteraction.data.name)!;
 	const options = convertAPIOptionsToCommandOptions({
 		guildId: rawInteraction.guild_id,
