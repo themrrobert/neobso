@@ -863,6 +863,7 @@ export const minigamesCommand = defineCommand({
 							name: 'quantity',
 							description: 'Quantity.',
 							required: true,
+							min_value: 1,
 							choices: choicesOf([1, 10, 25, 100, 1000])
 						}
 					]
@@ -1439,7 +1440,9 @@ export const minigamesCommand = defineCommand({
 			return agilityArenaBuyCommand(user, options.agility_arena.buy.item, options.agility_arena.buy.quantity);
 		}
 		if (options.agility_arena?.xp) {
-			return agilityArenaXPCommand(user, options.agility_arena.xp.quantity);
+			const { quantity } = options.agility_arena.xp;
+			if (!Number.isSafeInteger(quantity) || quantity < 1) return 'Quantity must be a positive whole number.';
+			return agilityArenaXPCommand(user, quantity);
 		}
 
 		/**

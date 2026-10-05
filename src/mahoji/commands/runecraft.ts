@@ -13,6 +13,7 @@ import { formatSkillRequirements } from '@/lib/util/smallUtils.js';
 import { ouraniaAltarStartCommand } from '@/mahoji/lib/abstracted_commands/ouraniaAltarCommand.js';
 import { tiaraRunecraftCommand } from '@/mahoji/lib/abstracted_commands/tiaraRunecraftCommand.js';
 import { calcMaxRCQuantity } from '@/mahoji/mahojiSettings.js';
+import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 const runeTypes = [
 	{ item: Items.getOrThrow('Warped extract'), runes: new Set(['air', 'mind', 'water', 'earth', 'fire', 'body']) },
@@ -135,7 +136,9 @@ export const runecraftCommand = defineCommand({
 		const daeyaltEssenceOwned = bank.amount('Daeyalt essence');
 
 		let { tripLength } = runeObj;
-		const boosts = [];
+		const boosts: string[] = [];
+		const globalSpeedBoost = globalSpeedBoosts({ activity: 'Runecraft', messages: boosts, multiplier: 1 });
+		boosts.splice(0, boosts.length, ...globalSpeedBoost.messages);
 		if (user.hasGracefulEquipped()) {
 			tripLength -= tripLength * 0.1;
 			boosts.push('10% for Graceful');
@@ -182,7 +185,7 @@ export const runecraftCommand = defineCommand({
 			boosts.push('3% for Runecraft cape');
 		}
 
-		const maxTripLength = await user.calcMaxTripLength('Runecraft');
+		const maxTripLength = (await user.calcMaxTripLength('Runecraft')) / globalSpeedBoost.multiplier;
 
 		if (user.hasEquippedOrInBank(['Abyssal amulet'])) {
 			const abyssalAmuletBoost = inventionBoosts.abyssalAmulet.boosts.find(b =>
@@ -344,6 +347,7 @@ export const runecraftCommand = defineCommand({
 					numberOfInventories / (4 * teleportReduction)
 				)}x Ring of dueling(8).`;
 			}
+			duration *= globalSpeedBoost.multiplier;
 			if (usestams) {
 				removeTalismanAndOrRunes.add('Stamina potion(4)', Math.max(Math.ceil(duration / (Time.Minute * 8)), 1));
 				if (!user.owns(removeTalismanAndOrRunes)) {
@@ -355,6 +359,7 @@ export const runecraftCommand = defineCommand({
 			}
 			totalCost.add(removeTalismanAndOrRunes);
 		}
+		if (!runeObj.inputTalisman) duration *= globalSpeedBoost.multiplier;
 
 		if (daeyalt_essence) {
 			totalCost.add('Daeyalt essence', essenceRequired);

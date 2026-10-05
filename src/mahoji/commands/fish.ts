@@ -12,6 +12,7 @@ import {
 import type { FishingActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
 import { bankToStrShortNames, formatSkillRequirements } from '@/lib/util/smallUtils.js';
+import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 const FEATHER_PACK_SIZE = 100;
 
@@ -101,7 +102,8 @@ export const fishCommand = defineCommand({
 			return 'You need to own the Angler Outfit to fish for Minnows.';
 		}
 
-		const maxTripLength = await user.calcMaxTripLength('Fishing');
+		const globalSpeedBoost = globalSpeedBoosts({ activity: 'Fishing', multiplier: 1 });
+		const maxTripLength = (await user.calcMaxTripLength('Fishing')) / globalSpeedBoost.multiplier;
 		const hasWildyEliteDiary = user.hasDiary('wilderness.elite');
 		const sharkLureQuantity = (options.shark_lure ?? 0) as SharkLureQuantity;
 		if (sharkLureQuantity > 0 && spot.name !== 'Shark') {
@@ -132,6 +134,8 @@ export const fishCommand = defineCommand({
 		if (typeof result === 'string') {
 			return result;
 		}
+		const duration = result.duration * globalSpeedBoost.multiplier;
+		result.boosts.push(...globalSpeedBoost.messages);
 
 		if (result.featherPacksToOpen && result.featherPacksToOpen > 0) {
 			const packsToOpen = result.featherPacksToOpen;
@@ -178,11 +182,11 @@ export const fishCommand = defineCommand({
 			usedBarbarianCutEat: result.usedBarbarianCutEat,
 			extraCatchRolls: result.extraCatchRolls,
 			iQty: options.quantity ? options.quantity : undefined,
-			duration: result.duration,
+			duration,
 			type: 'Fishing'
 		});
 
-		let response = `${user.minionName} is now fishing ${spot.name}, it'll take around ${formatTripDuration(user, result.duration)} to finish.`;
+		let response = `${user.minionName} is now fishing ${spot.name}, it'll take around ${formatTripDuration(user, duration)} to finish.`;
 		const hasPatricia = user.usingPet('Patricia');
 		if (spot.name !== 'Lobster' && hasPatricia && user.hasEquipped('Old crab cage') && !user.cl.has('Partycrab')) {
 			response += `\n\n${getEclipsePetName(user)} keeps circling the cage, but whatever you're hoping to coax out of it won't answer here.`;

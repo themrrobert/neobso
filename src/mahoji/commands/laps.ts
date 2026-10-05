@@ -10,6 +10,7 @@ import { courses } from '@/lib/skilling/skills/agility.js';
 import type { AgilityActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
 import { timePerAlchAgility } from '@/mahoji/lib/abstracted_commands/alchCommand.js';
+import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 const unlimitedFireRuneProviders = [
 	'Staff of fire',
@@ -170,6 +171,9 @@ export const lapsCommand = defineCommand({
 				);
 			}
 		}
+		const globalSpeedBoost = globalSpeedBoosts({ activity: 'Agility', messages: boosts, multiplier: 1 });
+		timePerLap *= globalSpeedBoost.multiplier;
+		boosts.splice(0, boosts.length, ...globalSpeedBoost.messages);
 
 		let { quantity } = options;
 		if (!quantity) {

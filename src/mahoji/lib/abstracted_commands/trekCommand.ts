@@ -12,6 +12,10 @@ import { formatTripDuration } from '@/lib/util/minionUtils.js';
 import { readableStatName } from '@/lib/util/smallUtils.js';
 
 export async function trekCommand(user: MUser, channelId: string, difficulty: string, quantity: number | undefined) {
+	if (quantity !== undefined && (!Number.isSafeInteger(quantity) || quantity < 1)) {
+		return 'Quantity must be a positive whole number.';
+	}
+
 	const tier = difficulties.find(item => stringMatches(item.difficulty, difficulty));
 	if (!tier) return 'that is not a valid difficulty';
 	const minLevel = tier.minCombat;
@@ -134,6 +138,10 @@ export async function trekShop(
 	quantity: number | undefined,
 	interaction: MInteraction
 ) {
+	if (quantity !== undefined && (!Number.isSafeInteger(quantity) || quantity < 1)) {
+		return 'Quantity must be a positive whole number.';
+	}
+
 	const userBank = user.bank;
 	const specifiedItem = TrekShopItems.find(
 		item => stringMatches(reward, item.name) || item.aliases?.some(alias => stringMatches(alias, reward))

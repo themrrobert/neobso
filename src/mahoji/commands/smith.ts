@@ -6,6 +6,7 @@ import smithables from '@/lib/skilling/skills/smithing/smithables/index.js';
 import type { SmithingActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
 import { pluraliseItemName } from '@/lib/util/smallUtils.js';
+import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export const smithCommand = defineCommand({
 	name: 'smith',
@@ -98,6 +99,9 @@ export const smithCommand = defineCommand({
 			timeToSmithSingleBar /= 2;
 			boosts.push('2x for Dwarven greathammer');
 		}
+		const globalSpeedBoost = globalSpeedBoosts({ activity: 'Smithing', messages: boosts, multiplier: 1 });
+		timeToSmithSingleBar *= globalSpeedBoost.multiplier;
+		boosts.splice(0, boosts.length, ...globalSpeedBoost.messages);
 
 		let maxTripLength = await user.calcMaxTripLength('Smithing');
 

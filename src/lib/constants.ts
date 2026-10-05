@@ -16,14 +16,7 @@ type BotType = 'OSB' | 'BSO';
 export const BOT_TYPE: BotType = 'BSO' as 'BSO' | 'OSB';
 export const BOT_TYPE_LOWERCASE: 'bso' | 'osb' = BOT_TYPE.toLowerCase() as 'bso' | 'osb';
 const isProduction = process.env.NODE_ENV === 'production';
-const GENERAL_CHANNEL_ID =
-	BOT_TYPE === 'OSB'
-		? isProduction
-			? '346304390858145792'
-			: (process.env.GENERAL_CHANNEL ?? '1154056119019393035')
-		: isProduction
-			? '792691343284764693'
-			: (process.env.GENERAL_CHANNEL ?? '1154056119019393035');
+const GENERAL_CHANNEL_ID = '1555081219811581972';
 const OLDSCHOOLGG_TESTING_SERVER_ID = '940758552425955348';
 const TEST_SERVER_ID = process.env.TESTING_SERVER ?? OLDSCHOOLGG_TESTING_SERVER_ID;
 const TEST_SERVER_LOG_CHANNEL = process.env.TESTING_LOG_CHANNEL ?? '1042760447830536212';

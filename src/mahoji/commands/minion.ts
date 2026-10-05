@@ -373,7 +373,8 @@ export const minionCommand = defineCommand({
 					type: 'Integer',
 					name: 'amount',
 					description: 'The amount you want to charge',
-					required: false
+					required: false,
+					min_value: 1
 				}
 			]
 		},
@@ -586,7 +587,11 @@ export const minionCommand = defineCommand({
 		if (options.ironman) return ironmanCommand(user, interaction);
 
 		if (options.charge) {
-			return degradeableItemsCommand(interaction, user, options.charge.item, options.charge.amount);
+			const { amount } = options.charge;
+			if (amount !== undefined && (!Number.isSafeInteger(amount) || amount < 1)) {
+				return 'Amount must be a positive whole number.';
+			}
+			return degradeableItemsCommand(interaction, user, options.charge.item, amount);
 		}
 		if (options.daily) {
 			return dailyCommand(rng, interaction, user);

@@ -11,6 +11,7 @@ import type { MiningActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
 import { formatSkillRequirements } from '@/lib/util/smallUtils.js';
 import { motherlodeMineCommand } from '@/mahoji/lib/abstracted_commands/motherlodeMineCommand.js';
+import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export function calculateMiningInput({
 	nameInput,
@@ -255,6 +256,7 @@ export const mineCommand = defineCommand({
 	],
 	run: async ({ options, user, channelId, rng }) => {
 		const { quantity, powermine } = options;
+		const globalSpeedBoost = globalSpeedBoosts({ activity: 'Mining', multiplier: 1 });
 		const hasKaramjaMedium = user.hasDiary('karamja.medium');
 
 		const motherlodeMine =
@@ -275,7 +277,7 @@ export const mineCommand = defineCommand({
 			miningLevel: user.skillLevel('mining'),
 			craftingLevel: user.skillLevel('crafting'),
 			strengthLevel: user.skillLevel('strength'),
-			maxTripLength: await user.calcMaxTripLength('Mining'),
+			maxTripLength: (await user.calcMaxTripLength('Mining')) / globalSpeedBoost.multiplier,
 			hasKaramjaMedium,
 			hasDT2Quest: user.user.finished_quest_ids.includes(QuestID.DesertTreasureII),
 			rng
@@ -286,6 +288,10 @@ export const mineCommand = defineCommand({
 		}
 
 		const { isPowermining, fakeDurationMax, fakeDurationMin, messages, newQuantity, ore, duration } = result;
+		const boostedDuration = duration * globalSpeedBoost.multiplier;
+		const boostedFakeDurationMax = fakeDurationMax * globalSpeedBoost.multiplier;
+		const boostedFakeDurationMin = fakeDurationMin * globalSpeedBoost.multiplier;
+		messages.push(...globalSpeedBoost.messages);
 
 		await ActivityManager.startTrip<MiningActivityTaskOptions>({
 			oreID: ore.id,
@@ -293,9 +299,9 @@ export const mineCommand = defineCommand({
 			channelId,
 			quantity: newQuantity,
 			powermine: isPowermining,
-			duration,
-			fakeDurationMax,
-			fakeDurationMin,
+			duration: boostedDuration,
+			fakeDurationMax: boostedFakeDurationMax,
+			fakeDurationMin: boostedFakeDurationMin,
 			type: 'Mining'
 		});
 
@@ -303,8 +309,8 @@ export const mineCommand = defineCommand({
 			quantity ? `mined ${newQuantity}x or gets tired` : 'is satisfied'
 		}, it'll take ${
 			quantity
-				? `between ${formatTripDuration(user, fakeDurationMin)} **and** ${formatTripDuration(user, fakeDurationMax)}`
-				: formatTripDuration(user, duration)
+				? `between ${formatTripDuration(user, boostedFakeDurationMin)} **and** ${formatTripDuration(user, boostedFakeDurationMax)}`
+				: formatTripDuration(user, boostedDuration)
 		} to finish.`;
 
 		if (user.usingPet('Doug')) {

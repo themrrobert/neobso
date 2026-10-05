@@ -17,6 +17,13 @@ export async function lmsCommand(
 	interaction: MInteraction,
 	rng: RNGProvider
 ) {
+	if (
+		options.buy?.quantity !== undefined &&
+		(!Number.isSafeInteger(options.buy.quantity) || options.buy.quantity < 1)
+	) {
+		return 'Quantity must be a positive whole number.';
+	}
+
 	const stats = await getUsersLMSStats(user);
 
 	if (options.stats) {

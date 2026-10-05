@@ -23,6 +23,22 @@ export interface AbstractCommandAttributes {
 	description: string;
 }
 
+function hasInvalidQuantity(value: unknown): boolean {
+	if (value === null || typeof value !== 'object') return false;
+
+	for (const [key, nestedValue] of Object.entries(value)) {
+		if (key === 'quantity') {
+			if (typeof nestedValue !== 'number' || !Number.isSafeInteger(nestedValue) || nestedValue < 1) {
+				return true;
+			}
+			continue;
+		}
+		if (hasInvalidQuantity(nestedValue)) return true;
+	}
+
+	return false;
+}
+
 export function defineCommand<const T extends AnyArr<unknown>>(
 	cmd: Readonly<{
 		name: string;
@@ -36,7 +52,13 @@ export function defineCommand<const T extends AnyArr<unknown>>(
 	}> &
 		(T[number] extends CommandOption ? unknown : { __error__: 'options must be CommandOption[]' })
 ): OSBMahojiCommand<AsOptArr<T>> {
-	return cmd as unknown as OSBMahojiCommand<AsOptArr<T>>;
+	return {
+		...cmd,
+		async run(commandOptions: CommandRunOptions<ExtractOptions<T>>): CommandResponse {
+			if (hasInvalidQuantity(commandOptions.options)) return 'Quantity must be a positive whole number.';
+			return cmd.run(commandOptions);
+		}
+	} as unknown as OSBMahojiCommand<AsOptArr<T>>;
 }
 
 export type CommandResponse = Promise<CommandResponseValue>;

@@ -153,6 +153,10 @@ export async function giantsFoundryStartCommand(
 	quantity: number | undefined,
 	channelId: string
 ) {
+	if (quantity !== undefined && (!Number.isSafeInteger(quantity) || quantity < 1)) {
+		return 'Quantity must be a positive whole number.';
+	}
+
 	let timePerSection = Time.Minute * 0.84;
 	const userSmithingLevel = user.skillsAsLevels.smithing;
 
@@ -251,6 +255,8 @@ export async function giantsFoundryShopCommand(
 	item: string | undefined,
 	quantity = 1
 ) {
+	if (!Number.isSafeInteger(quantity) || quantity < 1) return 'Quantity must be a positive whole number.';
+
 	const { foundry_reputation: currentUserReputation } = await user.fetchStats();
 	if (!item) {
 		return `You currently have ${currentUserReputation.toLocaleString()} Foundry Reputation.`;

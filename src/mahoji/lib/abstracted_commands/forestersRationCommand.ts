@@ -4,6 +4,7 @@ import { Bank } from 'oldschooljs';
 import ForestryRations from '@/lib/skilling/skills/cooking/forestersRations.js';
 import type { CreateForestersRationsActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
+import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export async function forestersRationCommand({
 	user,
@@ -42,7 +43,7 @@ export async function forestersRationCommand({
 		quantity = maxCanDo;
 	}
 
-	const duration = quantity * rationCookTime;
+	const duration = globalSpeedBoosts({ activity: 'CreateForestersRations', duration: quantity * rationCookTime }).duration;
 
 	if (duration > maxTripLength) {
 		return `${user.minionName} can't go on trips longer than ${formatDuration(

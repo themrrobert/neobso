@@ -108,6 +108,10 @@ export async function barbAssaultLevelCommand(user: MUser) {
 }
 
 export async function barbAssaultBuyCommand(interaction: MInteraction, user: MUser, input: string, quantity?: number) {
+	if (quantity !== undefined && (!Number.isSafeInteger(quantity) || quantity < 1)) {
+		return 'Quantity must be a positive whole number.';
+	}
+
 	if (typeof input !== 'string') input = '';
 	const buyable = BarbBuyables.find(i => stringMatches(input, i.item.name));
 	if (!buyable) {
@@ -141,6 +145,8 @@ export async function barbAssaultBuyCommand(interaction: MInteraction, user: MUs
 }
 
 export async function barbAssaultGambleCommand(interaction: MInteraction, user: MUser, tier: string, quantity = 1) {
+	if (!Number.isSafeInteger(quantity) || quantity < 1) return 'Quantity must be a positive whole number.';
+
 	const buyable = GambleTiers.find(i => stringMatches(tier, i.name));
 	if (!buyable) {
 		return 'You can gamble your points for the Low, Medium and High tiers. For example, `/minigames gamble low`.';

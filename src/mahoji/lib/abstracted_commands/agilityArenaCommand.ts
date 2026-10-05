@@ -58,6 +58,10 @@ export async function agilityArenaCommand(
 	channelId: string,
 	quantity: number | undefined
 ): CommandResponse {
+	if (quantity !== undefined && (!Number.isSafeInteger(quantity) || quantity < 1)) {
+		return 'Quantity must be a positive whole number.';
+	}
+
 	const userMaxTrip = await user.calcMaxTripLength('AgilityArena');
 	const maxQuantity = userMaxTrip / Time.Minute;
 
@@ -103,6 +107,8 @@ export async function agilityArenaCommand(
 }
 
 export async function agilityArenaBuyCommand(user: MUser, input: string, qty = 1): CommandResponse {
+	if (!Number.isSafeInteger(qty) || qty < 1) return 'Quantity must be a positive whole number.';
+
 	const buyable = agilityArenaBuyables.find(
 		i => stringMatches(input, i.name) || i.aliases.some(alias => stringMatches(alias, input))
 	);

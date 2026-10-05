@@ -180,6 +180,8 @@ export async function volcanicMineCommand(user: MUser, channelId: string, gameQu
 }
 
 export async function volcanicMineShopCommand(interaction: MInteraction, user: MUser, item: string, quantity = 1) {
+	if (!Number.isSafeInteger(quantity) || quantity < 1) return 'Quantity must be a positive whole number.';
+
 	const currentUserPoints = user.user.volcanic_mine_points;
 
 	const shopItem = VolcanicMineShop.find(f => stringMatches(f.name, item));

@@ -3,6 +3,7 @@ import { Bank } from 'oldschooljs';
 
 import type { ActivityTaskOptionsWithQuantity } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
+import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export async function driftNetCommand(
 	{ user, rng, channelId }: OSInteraction,
@@ -67,7 +68,9 @@ export async function driftNetCommand(
 	}
 
 	const quantity = Math.round(tripLength / oneDriftNetTime);
-	const duration = quantity * oneDriftNetTime;
+	const globalSpeedBoost = globalSpeedBoosts({ activity: 'DriftNet', duration: quantity * oneDriftNetTime, messages: boosts });
+	const duration = globalSpeedBoost.duration;
+	boosts.splice(0, boosts.length, ...globalSpeedBoost.messages);
 
 	itemsToRemove.add('Drift net', quantity);
 

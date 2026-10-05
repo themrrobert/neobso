@@ -4,6 +4,7 @@ import { Bank } from 'oldschooljs';
 import Prayer from '@/lib/skilling/skills/prayer.js';
 import type { BuryingActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
+import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export async function buryCommand(user: MUser, channelId: string, boneName: string, quantity?: number) {
 	const speedMod = 1;
@@ -36,7 +37,7 @@ export async function buryCommand(user: MUser, channelId: string, boneName: stri
 		return `You dont have ${cost}.`;
 	}
 
-	const duration = quantity * timeToBuryABone;
+	const duration = globalSpeedBoosts({ activity: 'Burying', duration: quantity * timeToBuryABone }).duration;
 
 	if (duration > maxTripLength) {
 		return `${user.minionName} can't go on trips longer than ${formatDuration(

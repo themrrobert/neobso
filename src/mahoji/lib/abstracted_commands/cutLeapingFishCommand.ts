@@ -4,6 +4,7 @@ import { Bank } from 'oldschooljs';
 import { LeapingFish } from '@/lib/skilling/skills/cooking/leapingFish.js';
 import type { CutLeapingFishActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
+import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export async function cutLeapingFishCommand({
 	user,
@@ -43,7 +44,7 @@ export async function cutLeapingFishCommand({
 		quantity = maxCanDo;
 	}
 
-	const duration = quantity * timeToCutSingleItem;
+	const duration = globalSpeedBoosts({ activity: 'CutLeapingFish', duration: quantity * timeToCutSingleItem }).duration;
 
 	if (duration > maxTripLength) {
 		return `${user.minionName} can't go on trips longer than ${formatDuration(

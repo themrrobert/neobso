@@ -4,6 +4,7 @@ import { Bank } from 'oldschooljs';
 import type { UnderwaterAgilityThievingTrainingSkill } from '@/lib/skilling/skills/agility.js';
 import type { UnderwaterAgilityThievingTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
+import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export async function underwaterAgilityThievingCommand({
 	rng,
@@ -77,7 +78,13 @@ export async function underwaterAgilityThievingCommand({
 	}
 
 	const quantity = Math.round(tripLength / oneLootActionTime);
-	const duration = quantity * oneLootActionTime;
+	const globalSpeedBoost = globalSpeedBoosts({
+		activity: 'UnderwaterAgilityThieving',
+		duration: quantity * oneLootActionTime,
+		messages: boosts
+	});
+	const duration = globalSpeedBoost.duration;
+	boosts.splice(0, boosts.length, ...globalSpeedBoost.messages);
 
 	if (!userBank.has(itemsToRemove)) {
 		return `You need ${quantity}x Stamina potion(4) for the whole trip, try a lower trip length, turn of stamina usage or make/buy more Stamina potion(4).`;

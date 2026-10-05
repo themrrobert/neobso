@@ -8,6 +8,7 @@ import type { CookingActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
 import { cutLeapingFishCommand } from '@/mahoji/lib/abstracted_commands/cutLeapingFishCommand.js';
 import { forestersRationCommand } from '@/mahoji/lib/abstracted_commands/forestersRationCommand.js';
+import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export const cookCommand = defineCommand({
 	name: 'cook',
@@ -118,6 +119,9 @@ export const cookCommand = defineCommand({
 			}
 		}
 		timeToCookSingleCookable /= cookingBoost;
+		const globalSpeedBoost = globalSpeedBoosts({ activity: 'Cooking', messages: boosts, multiplier: 1 });
+		timeToCookSingleCookable *= globalSpeedBoost.multiplier;
+		boosts.splice(0, boosts.length, ...globalSpeedBoost.messages);
 		if (cookingBoost !== 1) {
 			boosts.push(`+${(cookingBoost - 1) * 100}% for ${cookingBoostItems.join(', ')}.`);
 		}

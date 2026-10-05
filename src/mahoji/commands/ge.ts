@@ -20,7 +20,8 @@ export type GEListingWithTransactions = GEListing & {
 	sellTransactions: GETransaction[];
 };
 
-function parseNumber(str: string) {
+function parseNumber(str: string | number | undefined) {
+	if (str === undefined) return -1;
 	if (typeof str === 'number') str = `${str}`;
 	const number = evalMathExpression(str);
 	if (!number) return -1;
@@ -66,9 +67,10 @@ function geListingToString(
 
 const quantityOption = defineOption({
 	name: 'quantity',
-	description: 'The quantity of the item to exchange (e.g. 7, 5k, 10m).',
-	type: 'String',
-	required: true
+	description: 'The quantity of the item to exchange.',
+	type: 'Integer',
+	required: true,
+	min_value: 1
 });
 
 const priceOption = defineOption({
@@ -228,6 +230,13 @@ export const geCommand = defineCommand({
 		}
 	],
 	run: async ({ options, user, interaction }) => {
+		if (options.buy || options.sell) {
+			const quantity = options.buy?.quantity ?? options.sell?.quantity;
+			if (typeof quantity !== 'number' || !Number.isSafeInteger(quantity) || quantity < 1) {
+				return 'Quantity must be a positive whole number.';
+			}
+		}
+
 		await interaction.defer();
 
 		if (options.price) {

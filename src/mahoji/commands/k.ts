@@ -58,7 +58,7 @@ export const minionKCommand = defineCommand({
 			name: 'quantity',
 			description: 'The amount you want to kill.',
 			required: false,
-			min_value: 0
+			min_value: 1
 		},
 		{
 			type: 'String',
@@ -81,6 +81,13 @@ export const minionKCommand = defineCommand({
 		}
 	],
 	run: async ({ options, user, channelId, interaction, rng }) => {
+		if (
+			options.quantity !== undefined &&
+			(!Number.isSafeInteger(options.quantity) || options.quantity < 1)
+		) {
+			return 'Quantity must be a positive whole number.';
+		}
+
 		return minionKillCommand(
 			user,
 			interaction,

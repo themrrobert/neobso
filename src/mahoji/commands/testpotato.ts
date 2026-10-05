@@ -710,7 +710,7 @@ export const testPotatoCommand = globalConfig.isProduction
 							name: 'quantity',
 							description: 'The task quantity you want to assign.',
 							required: false,
-							min_value: 0,
+							min_value: 1,
 							max_value: 1000
 						}
 					]
@@ -1148,6 +1148,14 @@ export const testPotatoCommand = globalConfig.isProduction
 				}
 
 				if (options.setslayertask) {
+					const suppliedQuantity = options.setslayertask.quantity;
+					if (
+						suppliedQuantity !== undefined &&
+						(!Number.isSafeInteger(suppliedQuantity) || suppliedQuantity < 1)
+					) {
+						return 'Quantity must be a positive whole number.';
+					}
+
 					const usersTask = await user.fetchSlayerInfo();
 
 					const { monster, master } = options.setslayertask;

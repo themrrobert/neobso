@@ -312,6 +312,10 @@ export async function valeTotemsRummageCommand(
 	quantity?: number,
 	all?: boolean
 ) {
+	if (quantity !== undefined && (!Number.isSafeInteger(quantity) || quantity < 1)) {
+		return 'Quantity must be a positive whole number.';
+	}
+
 	if (!quantity && !all) {
 		return 'You must specify a quantity or use the "all" flag. Note: Quantity is number of offerings, must be an interval of 100';
 	}
@@ -361,6 +365,8 @@ export async function valeTotemsRummageCommand(
 }
 
 export async function valeTotemsBuyCommand(interaction: MInteraction, user: MUser, item?: string, quantity = 1) {
+	if (!Number.isSafeInteger(quantity) || quantity < 1) return 'Quantity must be a positive whole number.';
+
 	if (!user.user.finished_quest_ids.includes(QuestID.ChildrenOfTheSun)) {
 		return `${user.minionName} needs to complete the "Children of the Sun" quest before ${user.minionName} can access Vale Research Exchange.`;
 	}
@@ -416,6 +422,8 @@ export async function valeTotemsSellCommand(
 	item: string | undefined,
 	quantity = 1
 ) {
+	if (!Number.isSafeInteger(quantity) || quantity < 1) return 'Quantity must be a positive whole number.';
+
 	if (!user.user.finished_quest_ids.includes(QuestID.ChildrenOfTheSun)) {
 		return `${user.minionName} needs to complete the "Children of the Sun" quest before ${user.minionName} can access Vale Research Exchange.`;
 	}

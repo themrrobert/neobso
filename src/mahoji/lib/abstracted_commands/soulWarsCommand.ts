@@ -151,6 +151,10 @@ export async function soulWarsStartCommand(rng: RNGProvider, user: MUser, channe
 }
 
 export async function soulWarsBuyCommand(user: MUser, input = '', quantity?: number) {
+	if (quantity !== undefined && (!Number.isSafeInteger(quantity) || quantity < 1)) {
+		return 'Quantity must be a positive whole number.';
+	}
+
 	const possibleItemName = input.split(' ');
 
 	if (!quantity) {

@@ -24,6 +24,7 @@ import {
 	type CombatMethodOptions,
 	mainBoostEffects
 } from '@/mahoji/lib/abstracted_commands/minionKill/speedBoosts.js';
+import { activity_type_enum } from '@/prisma/main/enums.js';
 
 export const CombatMethodOptionsSchema = z.object({
 	bob: z.nativeEnum(SlayerActivityConstants).optional(),
@@ -66,6 +67,105 @@ function isBoostResult(obj: unknown): obj is BoostResult {
 	return isObject(obj) && ('percentageReduction' in obj || 'percentageIncrease' in obj);
 }
 
+interface SpeedBoostOptions {
+	activity: activity_type_enum;
+	messages?: string[];
+}
+
+type DurationSpeedBoostOptions = SpeedBoostOptions & {
+	duration: number;
+	multiplier?: never;
+};
+
+type MultiplierSpeedBoostOptions = SpeedBoostOptions & {
+	duration?: never;
+	multiplier: number;
+};
+
+type DurationSpeedBoostResult = {
+	messages: string[];
+	duration: number;
+};
+
+type MultiplierSpeedBoostResult = {
+	messages: string[];
+	multiplier: number;
+};
+
+/** Applies global speed boosts to one skilling activity. */
+export function globalSpeedBoosts(options: DurationSpeedBoostOptions): DurationSpeedBoostResult;
+export function globalSpeedBoosts(options: MultiplierSpeedBoostOptions): MultiplierSpeedBoostResult;
+export function globalSpeedBoosts(
+	options: DurationSpeedBoostOptions | MultiplierSpeedBoostOptions
+): DurationSpeedBoostResult | MultiplierSpeedBoostResult {
+	if (options.duration !== undefined && options.multiplier !== undefined) {
+		throw new Error('Specify either duration or multiplier, not both.');
+	}
+
+	const messages = [...(options.messages ?? [])];
+	let hasSkillingBoost = false;
+	switch (options.activity) {
+		case activity_type_enum.Agility:
+		case activity_type_enum.Alching:
+		case activity_type_enum.AerialFishing:
+		case activity_type_enum.Birdhouse:
+		case activity_type_enum.Burying:
+		case activity_type_enum.CamdozaalFishing:
+		case activity_type_enum.CamdozaalMining:
+		case activity_type_enum.CamdozaalSmithing:
+		case activity_type_enum.Casting:
+		case activity_type_enum.Construction:
+		case activity_type_enum.Cooking:
+		case activity_type_enum.Crafting:
+		case activity_type_enum.CreateForestersRations:
+		case activity_type_enum.CutLeapingFish:
+		case activity_type_enum.DarkAltar:
+		case activity_type_enum.Disassembling:
+		case activity_type_enum.DriftNet:
+		case activity_type_enum.Dungeoneering:
+		case activity_type_enum.Enchanting:
+		case activity_type_enum.Farming:
+		case activity_type_enum.Firemaking:
+		case activity_type_enum.Fishing:
+		case activity_type_enum.Fletching:
+		case activity_type_enum.GiantsFoundry:
+		case activity_type_enum.GnomeRestaurant:
+		case activity_type_enum.GuardiansOfTheRift:
+		case activity_type_enum.Herblore:
+		case activity_type_enum.Hunter:
+		case activity_type_enum.KibbleMaking:
+		case activity_type_enum.MahoganyHomes:
+		case activity_type_enum.MemoryHarvest:
+		case activity_type_enum.Mining:
+		case activity_type_enum.MotherlodeMining:
+		case activity_type_enum.Offering:
+		case activity_type_enum.OuraniaAltar:
+		case activity_type_enum.Pickpocket:
+		case activity_type_enum.PuroPuro:
+		case activity_type_enum.Research:
+		case activity_type_enum.RoguesDenMaze:
+		case activity_type_enum.Runecraft:
+		case activity_type_enum.Sawmill:
+		case activity_type_enum.Scattering:
+		case activity_type_enum.Smelting:
+		case activity_type_enum.Smithing:
+		case activity_type_enum.TiaraRunecraft:
+		case activity_type_enum.TitheFarm:
+		case activity_type_enum.UnderwaterAgilityThieving:
+		case activity_type_enum.Woodcutting:
+			hasSkillingBoost = true;
+			break;
+		default:
+			break;
+	}
+
+	if (hasSkillingBoost) messages.push('2x BSO Boost 👻');
+	if (options.duration !== undefined) {
+		return { messages, duration: hasSkillingBoost ? options.duration / 2 : options.duration };
+	}
+	return { messages, multiplier: hasSkillingBoost ? options.multiplier / 2 : options.multiplier };
+}
+
 export function speedCalculations(args: Omit<BoostArgs, 'currentTaskOptions'>) {
 	const { monster, monsterKC, attackStyles, gearBank, maxTripLength, inputQuantity, isInWilderness } = args;
 	const { skillsAsLevels } = args.gearBank;
@@ -78,7 +178,7 @@ export function speedCalculations(args: Omit<BoostArgs, 'currentTaskOptions'>) {
 	if (percentReduced >= 1) messages.push(`${percentReduced}% for KC`);
 
 	timeToFinish /= 2;
-	messages.push('2x BSO Boost');
+	messages.push('2x BSO Boost 👻');
 
 	if (gearBank.gear.wildy.hasEquipped(['Hellfire bow']) && isInWilderness) {
 		timeToFinish /= 3;

@@ -293,6 +293,9 @@ const commandList = [...new Set(mentionCommands.flatMap(i => [i.name, ...i.alias
 
 export async function onMessage(msg: IMessage) {
 	if (!msg.content) return;
+	if (!msg.channel_id) return;
+	if (BigInt(msg.channel_id) < 1555081219811581972n) return;
+
 	void boxSpawnHandler(msg);
 
 	const content = msg.content.trim();

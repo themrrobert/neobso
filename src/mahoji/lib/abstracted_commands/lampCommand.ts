@@ -288,6 +288,10 @@ export const Lampables: IXPObject[] = [
 ];
 
 export async function lampCommand(user: MUser, itemToUse: string, skill: string, _quantity: number | undefined) {
+	if (_quantity !== undefined && (!Number.isSafeInteger(_quantity) || _quantity < 1)) {
+		return 'Quantity must be a positive whole number.';
+	}
+
 	const item = Items.getItem(itemToUse);
 	if (!item) return "That's not a valid item.";
 

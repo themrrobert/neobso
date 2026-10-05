@@ -4,6 +4,7 @@ import { Bank } from 'oldschooljs';
 import Firemaking from '@/lib/skilling/skills/firemaking.js';
 import type { FiremakingActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
+import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export const lightCommand = defineCommand({
 	name: 'light',
@@ -48,9 +49,11 @@ export const lightCommand = defineCommand({
 		}
 
 		// All logs take 2.4s to light, add on quarter of a second to account for banking/etc.
-		const timeToLightSingleLog = Time.Second * 2.4 + Time.Second / 4;
+		let timeToLightSingleLog = Time.Second * 2.4 + Time.Second / 4;
 
 		const maxTripLength = await user.calcMaxTripLength('Firemaking');
+		const globalSpeedBoost = globalSpeedBoosts({ activity: 'Firemaking', multiplier: 1 });
+		timeToLightSingleLog *= globalSpeedBoost.multiplier;
 
 		const amountOfLogsOwned = user.bank.amount(log.inputLogs);
 
@@ -87,6 +90,6 @@ export const lightCommand = defineCommand({
 		return `${user.minionName} is now lighting ${quantity}x ${log.name}, it'll take around ${formatTripDuration(
 			user,
 			duration
-		)} to finish.`;
+		)} to finish.\n\n**Boosts:** ${globalSpeedBoost.messages.join(', ')}.`;
 	}
 });

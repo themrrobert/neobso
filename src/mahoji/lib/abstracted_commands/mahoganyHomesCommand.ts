@@ -104,6 +104,10 @@ export const mahoganyHomesBuyables = [
 ];
 
 export async function mahoganyHomesBuyCommand(user: MUser, input = '', quantity?: number) {
+	if (quantity !== undefined && (!Number.isSafeInteger(quantity) || quantity < 1)) {
+		return 'Quantity must be a positive whole number.';
+	}
+
 	const buyable = mahoganyHomesBuyables.find(i => stringMatches(input, i.item.name));
 	if (!buyable) {
 		return `Here are the items you can buy: \n\n${mahoganyHomesBuyables

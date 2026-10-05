@@ -7,6 +7,7 @@ import Prayer from '@/lib/skilling/skills/prayer.js';
 import type { OfferingActivityTaskOptions } from '@/lib/types/minions.js';
 import { makeBankImage } from '@/lib/util/makeBankImage.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
+import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 const specialBones = [
 	{
@@ -221,12 +222,14 @@ export const offerCommand = defineCommand({
 			return `${user.minionName} needs ${bone.level} Prayer to offer ${bone.name}.`;
 		}
 
-		const timeToBuryABone = speedMod * (Time.Second * 1.2 + Time.Second / 4);
+		let timeToBuryABone = speedMod * (Time.Second * 1.2 + Time.Second / 4);
 
 		const amountOfThisBone = userBank.amount(bone.inputId);
 		if (!amountOfThisBone) return `You have no ${bone.name}.`;
 
 		const maxTripLength = await user.calcMaxTripLength('Offering');
+		const globalSpeedBoost = globalSpeedBoosts({ activity: 'Offering', multiplier: 1 });
+		timeToBuryABone *= globalSpeedBoost.multiplier;
 
 		// If no quantity provided, set it to the max.
 		if (!quantity) {
@@ -260,6 +263,6 @@ export const offerCommand = defineCommand({
 		});
 		return `${user.minionName} is now offering ${quantity}x ${
 			bone.name
-		} at the Chaos altar, it'll take around ${formatTripDuration(user, duration)} to finish.`;
+		} at the Chaos altar, it'll take around ${formatTripDuration(user, duration)} to finish.\n\n**Boosts:** ${globalSpeedBoost.messages.join(', ')}.`;
 	}
 });

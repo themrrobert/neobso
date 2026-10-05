@@ -4,6 +4,7 @@ import { Bank } from 'oldschooljs';
 import Runecraft from '@/lib/skilling/skills/runecraft.js';
 import type { TiaraRunecraftActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
+import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export async function tiaraRunecraftCommand({
 	user,
@@ -90,6 +91,9 @@ export async function tiaraRunecraftCommand({
 
 	await user.removeItemsFromBank(totalCost);
 	await ClientSettings.updateBankSetting('runecraft_cost', totalCost);
+	const globalSpeedBoost = globalSpeedBoosts({ activity: 'TiaraRunecraft', duration, messages: boosts });
+	duration = globalSpeedBoost.duration;
+	boosts.splice(0, boosts.length, ...globalSpeedBoost.messages);
 
 	await ActivityManager.startTrip<TiaraRunecraftActivityTaskOptions>({
 		tiaraID: tiaraObj.id,

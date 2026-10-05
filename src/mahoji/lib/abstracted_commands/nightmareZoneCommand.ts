@@ -401,6 +401,8 @@ export async function nightmareZoneShopCommand(
 	item: string | undefined,
 	quantity = 1
 ) {
+	if (!Number.isSafeInteger(quantity) || quantity < 1) return 'Quantity must be a positive whole number.';
+
 	const currentUserPoints = user.user.nmz_points;
 	if (!item) {
 		return `You currently have ${currentUserPoints.toLocaleString()} Nightmare Zone points.`;
