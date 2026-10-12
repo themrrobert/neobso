@@ -150,9 +150,7 @@ export const mixCommand = defineCommand({
 
 		await ClientSettings.updateBankSetting('herblore_cost_bank', finalCost);
 
-		const duration = isInstantTrip
-			? Time.Second * 2 * globalSpeedBoost.multiplier
-			: quantity * timeToMixSingleItem;
+		const duration = isInstantTrip ? Time.Second * 2 * globalSpeedBoost.multiplier : quantity * timeToMixSingleItem;
 
 		await ActivityManager.startTrip<HerbloreActivityTaskOptions>({
 			mixableID: mixableItem.item.id,

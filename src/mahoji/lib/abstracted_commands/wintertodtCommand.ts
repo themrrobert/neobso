@@ -6,6 +6,7 @@ import { warmGear } from '@/lib/data/filterables.js';
 import { trackLoot } from '@/lib/lootTrack.js';
 import type { MinigameActivityTaskOptionsWithNoChanges } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export async function wintertodtCommand(user: MUser, channelId: string, quantity?: number) {
 	const fmLevel = user.skillsAsLevels.firemaking;
@@ -45,6 +46,9 @@ export async function wintertodtCommand(user: MUser, channelId: string, quantity
 
 	healAmountNeeded -= warmGearAmount * 15;
 	durationPerTodt = reduceNumByPercent(durationPerTodt, 5 * warmGearAmount);
+	const speedResult = speedCalculations({ activity: 'Wintertodt', duration: durationPerTodt, messages });
+	durationPerTodt = speedResult.duration;
+	messages.splice(0, messages.length, ...speedResult.messages);
 
 	const maxTripLength = await user.calcMaxTripLength('Wintertodt');
 	if (!quantity) quantity = Math.floor(maxTripLength / durationPerTodt);

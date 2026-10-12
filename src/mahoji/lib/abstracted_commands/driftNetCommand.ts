@@ -68,7 +68,11 @@ export async function driftNetCommand(
 	}
 
 	const quantity = Math.round(tripLength / oneDriftNetTime);
-	const globalSpeedBoost = globalSpeedBoosts({ activity: 'DriftNet', duration: quantity * oneDriftNetTime, messages: boosts });
+	const globalSpeedBoost = globalSpeedBoosts({
+		activity: 'DriftNet',
+		duration: quantity * oneDriftNetTime,
+		messages: boosts
+	});
 	const duration = globalSpeedBoost.duration;
 	boosts.splice(0, boosts.length, ...globalSpeedBoost.messages);
 

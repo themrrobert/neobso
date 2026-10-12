@@ -2,6 +2,7 @@ import { calcWhatPercent, formatDuration, reduceNumByPercent, Time } from '@olds
 
 import type { TemporossActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export async function temporossCommand(user: MUser, channelId: string, quantity: number | undefined) {
 	const fLevel = user.skillLevel('fishing');
@@ -41,6 +42,10 @@ export async function temporossCommand(user: MUser, channelId: string, quantity:
 		messages.push('10% boost for Dragon harpoon');
 		durationPerRoss = reduceNumByPercent(durationPerRoss, 10);
 	}
+
+	const speedResult = speedCalculations({ activity: 'Tempoross', duration: durationPerRoss, messages });
+	durationPerRoss = speedResult.duration;
+	messages.splice(0, messages.length, ...speedResult.messages);
 
 	const maxTripLength = await user.calcMaxTripLength('Tempoross');
 	if (!quantity) {

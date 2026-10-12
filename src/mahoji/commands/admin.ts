@@ -962,16 +962,16 @@ export const adminCommand = defineCommand({
 			description: 'Spawn items for a user',
 			options: [
 				{
+					type: 'User',
+					name: 'user',
+					description: 'The user',
+					required: true
+				},
+				{
 					type: 'String',
 					name: 'items',
 					description: 'The items to give',
 					required: true
-				},
-				{
-					type: 'User',
-					name: 'user',
-					description: 'The user',
-					required: false
 				},
 				{
 					type: 'String',

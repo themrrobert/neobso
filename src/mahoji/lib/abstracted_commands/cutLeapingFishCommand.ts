@@ -44,7 +44,10 @@ export async function cutLeapingFishCommand({
 		quantity = maxCanDo;
 	}
 
-	const duration = globalSpeedBoosts({ activity: 'CutLeapingFish', duration: quantity * timeToCutSingleItem }).duration;
+	const duration = globalSpeedBoosts({
+		activity: 'CutLeapingFish',
+		duration: quantity * timeToCutSingleItem
+	}).duration;
 
 	if (duration > maxTripLength) {
 		return `${user.minionName} can't go on trips longer than ${formatDuration(

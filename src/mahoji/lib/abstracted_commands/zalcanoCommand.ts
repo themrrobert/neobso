@@ -5,6 +5,7 @@ import { soteSkillRequirements } from '@/lib/skilling/functions/questRequirement
 import type { ZalcanoActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
 import { formatSkillRequirements } from '@/lib/util/smallUtils.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 function calcPerformance(kcLearned: number, skillPercentage: number) {
 	let basePerformance = 50;
@@ -50,6 +51,10 @@ export async function zalcanoCommand(rng: RNGProvider, user: MUser, channelId: s
 		baseTime *= 1.15;
 		boosts.push('-15% time penalty for not having graceful equipped');
 	}
+
+	const speedResult = speedCalculations({ activity: 'Zalcano', duration: baseTime, messages: boosts });
+	baseTime = speedResult.duration;
+	boosts.splice(0, boosts.length, ...speedResult.messages);
 
 	let healAmountNeeded = 7 * 12;
 	if (kc > 100) healAmountNeeded = 1 * 12;

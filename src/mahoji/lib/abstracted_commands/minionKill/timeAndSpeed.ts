@@ -10,6 +10,7 @@ import { Bank } from 'oldschooljs';
 import { mergeDeep } from 'remeda';
 import * as z from 'zod';
 
+import { activity_type_enum } from '@/prisma/main/enums.js';
 import { SlayerActivityConstants } from '@/lib/minions/data/combatConstants.js';
 import { type AttackStyles, getAttackStylesContext } from '@/lib/minions/functions/index.js';
 import reducedTimeFromKC from '@/lib/minions/functions/reducedTimeFromKC.js';
@@ -24,7 +25,6 @@ import {
 	type CombatMethodOptions,
 	mainBoostEffects
 } from '@/mahoji/lib/abstracted_commands/minionKill/speedBoosts.js';
-import { activity_type_enum } from '@/prisma/main/enums.js';
 
 export const CombatMethodOptionsSchema = z.object({
 	bob: z.nativeEnum(SlayerActivityConstants).optional(),
@@ -92,10 +92,7 @@ type MultiplierSpeedBoostResult = {
 	multiplier: number;
 };
 
-/** Applies global speed boosts to one skilling activity. */
-export function globalSpeedBoosts(options: DurationSpeedBoostOptions): DurationSpeedBoostResult;
-export function globalSpeedBoosts(options: MultiplierSpeedBoostOptions): MultiplierSpeedBoostResult;
-export function globalSpeedBoosts(
+function calculateSkillingSpeed(
 	options: DurationSpeedBoostOptions | MultiplierSpeedBoostOptions
 ): DurationSpeedBoostResult | MultiplierSpeedBoostResult {
 	if (options.duration !== undefined && options.multiplier !== undefined) {
@@ -128,13 +125,9 @@ export function globalSpeedBoosts(
 		case activity_type_enum.Firemaking:
 		case activity_type_enum.Fishing:
 		case activity_type_enum.Fletching:
-		case activity_type_enum.GiantsFoundry:
-		case activity_type_enum.GnomeRestaurant:
-		case activity_type_enum.GuardiansOfTheRift:
 		case activity_type_enum.Herblore:
 		case activity_type_enum.Hunter:
 		case activity_type_enum.KibbleMaking:
-		case activity_type_enum.MahoganyHomes:
 		case activity_type_enum.MemoryHarvest:
 		case activity_type_enum.Mining:
 		case activity_type_enum.MotherlodeMining:
@@ -143,16 +136,17 @@ export function globalSpeedBoosts(
 		case activity_type_enum.Pickpocket:
 		case activity_type_enum.PuroPuro:
 		case activity_type_enum.Research:
-		case activity_type_enum.RoguesDenMaze:
 		case activity_type_enum.Runecraft:
 		case activity_type_enum.Sawmill:
 		case activity_type_enum.Scattering:
 		case activity_type_enum.Smelting:
 		case activity_type_enum.Smithing:
 		case activity_type_enum.TiaraRunecraft:
-		case activity_type_enum.TitheFarm:
 		case activity_type_enum.UnderwaterAgilityThieving:
+		case activity_type_enum.Tempoross:
+		case activity_type_enum.Wintertodt:
 		case activity_type_enum.Woodcutting:
+		case activity_type_enum.Zalcano:
 			hasSkillingBoost = true;
 			break;
 		default:
@@ -166,7 +160,7 @@ export function globalSpeedBoosts(
 	return { messages, multiplier: hasSkillingBoost ? options.multiplier / 2 : options.multiplier };
 }
 
-export function speedCalculations(args: Omit<BoostArgs, 'currentTaskOptions'>) {
+function combatSpeedCalculations(args: Omit<BoostArgs, 'currentTaskOptions'>) {
 	const { monster, monsterKC, attackStyles, gearBank, maxTripLength, inputQuantity, isInWilderness } = args;
 	const { skillsAsLevels } = args.gearBank;
 	const messages: string[] = [];
@@ -176,9 +170,6 @@ export function speedCalculations(args: Omit<BoostArgs, 'currentTaskOptions'>) {
 	messages.push(skillBoostMsg);
 
 	if (percentReduced >= 1) messages.push(`${percentReduced}% for KC`);
-
-	timeToFinish /= 2;
-	messages.push('2x BSO Boost 👻');
 
 	if (gearBank.gear.wildy.hasEquipped(['Hellfire bow']) && isInWilderness) {
 		timeToFinish /= 3;
@@ -271,4 +262,28 @@ export function speedCalculations(args: Omit<BoostArgs, 'currentTaskOptions'>) {
 	});
 
 	return result;
+}
+
+/** Calculates speed for skilling activities and combat trips. */
+export function speedCalculations(options: DurationSpeedBoostOptions): DurationSpeedBoostResult;
+export function speedCalculations(options: MultiplierSpeedBoostOptions): MultiplierSpeedBoostResult;
+export function speedCalculations(
+	args: Omit<BoostArgs, 'currentTaskOptions'>
+): ReturnType<typeof combatSpeedCalculations>;
+export function speedCalculations(
+	options: DurationSpeedBoostOptions | MultiplierSpeedBoostOptions | Omit<BoostArgs, 'currentTaskOptions'>
+) {
+	if ('activity' in options) return calculateSkillingSpeed(options);
+	return combatSpeedCalculations(options);
+}
+
+/** @deprecated Use speedCalculations. */
+export function globalSpeedBoosts(options: DurationSpeedBoostOptions): DurationSpeedBoostResult;
+/** @deprecated Use speedCalculations. */
+export function globalSpeedBoosts(options: MultiplierSpeedBoostOptions): MultiplierSpeedBoostResult;
+export function globalSpeedBoosts(
+	options: DurationSpeedBoostOptions | MultiplierSpeedBoostOptions
+): DurationSpeedBoostResult | MultiplierSpeedBoostResult {
+	if (options.duration !== undefined) return speedCalculations(options);
+	return speedCalculations(options);
 }

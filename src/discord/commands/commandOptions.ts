@@ -33,6 +33,7 @@ export type NumberOption<C extends AnyArr<{ name: string; value: number }> = Any
 		type: 'Integer' | 'Number';
 		choices?: C;
 		autocomplete?: (options: NumberAutoComplete) => Promise<APIApplicationCommandOptionChoice<number>[]>;
+		allowNegative?: boolean;
 		min_value?: number;
 		max_value?: number;
 	};

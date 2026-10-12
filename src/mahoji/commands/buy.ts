@@ -47,10 +47,7 @@ export const buyCommand = defineCommand({
 		}
 	],
 	run: async ({ options, user, interaction, channelId }) => {
-		if (
-			options.quantity !== undefined &&
-			(!Number.isSafeInteger(options.quantity) || options.quantity < 1)
-		) {
+		if (options.quantity !== undefined && (!Number.isSafeInteger(options.quantity) || options.quantity < 1)) {
 			return 'Quantity must be a positive whole number.';
 		}
 

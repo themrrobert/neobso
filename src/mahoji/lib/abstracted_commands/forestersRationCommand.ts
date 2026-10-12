@@ -43,7 +43,10 @@ export async function forestersRationCommand({
 		quantity = maxCanDo;
 	}
 
-	const duration = globalSpeedBoosts({ activity: 'CreateForestersRations', duration: quantity * rationCookTime }).duration;
+	const duration = globalSpeedBoosts({
+		activity: 'CreateForestersRations',
+		duration: quantity * rationCookTime
+	}).duration;
 
 	if (duration > maxTripLength) {
 		return `${user.minionName} can't go on trips longer than ${formatDuration(

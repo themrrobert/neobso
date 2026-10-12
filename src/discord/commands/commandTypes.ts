@@ -58,6 +58,7 @@ function validateCommandOptions(value: unknown, optionDefinitions: readonly Comm
 			if (typeof optionValue !== 'string') return `${option.name} is invalid.`;
 			continue;
 		}
+		if (option.type !== 'Integer' && option.type !== 'Number') continue;
 
 		if (typeof optionValue !== 'number' || !Number.isFinite(optionValue)) {
 			return `${option.name} must be a number.`;
@@ -65,8 +66,16 @@ function validateCommandOptions(value: unknown, optionDefinitions: readonly Comm
 		if (option.type === 'Integer' && !Number.isSafeInteger(optionValue)) {
 			return `${option.name} must be a whole number.`;
 		}
+		if (optionValue < 0 && !option.allowNegative) {
+			return `${option.name} cannot be negative.`;
+		}
 
-		const minimum = option.min_value ?? (['quantity', 'amount', 'count', 'number'].includes(option.name) ? 1 : undefined);
+		let minimum = option.min_value;
+		if (option.allowNegative && optionValue < 0) {
+			minimum = minimum !== undefined && minimum < 0 ? minimum : undefined;
+		} else if (minimum === undefined && ['quantity', 'amount', 'count', 'number'].includes(option.name)) {
+			minimum = 1;
+		}
 		if (minimum !== undefined && optionValue < minimum) {
 			return `${option.name} must be at least ${minimum}.`;
 		}
@@ -95,7 +104,10 @@ export function defineCommand<const T extends AnyArr<unknown>>(
 	return {
 		...cmd,
 		async run(commandOptions: CommandRunOptions<ExtractOptions<T>>): CommandResponse {
-			const validationError = validateCommandOptions(commandOptions.options, cmd.options as readonly CommandOption[]);
+			const validationError = validateCommandOptions(
+				commandOptions.options,
+				cmd.options as readonly CommandOption[]
+			);
 			if (validationError) return validationError;
 			return cmd.run(commandOptions);
 		}
