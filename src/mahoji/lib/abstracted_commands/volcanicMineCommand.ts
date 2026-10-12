@@ -91,6 +91,10 @@ export const VolcanicMineShop: { name: string; output: Bank; cost: number; clOnl
 ];
 
 export async function volcanicMineCommand(user: MUser, channelId: string, gameQuantity: number | undefined) {
+	if (gameQuantity !== undefined && (!Number.isSafeInteger(gameQuantity) || gameQuantity < 1)) {
+		return 'Quantity must be a positive whole number.';
+	}
+
 	const skills = user.skillsAsLevels;
 	if (!hasSkillReqs(user, skillReqs)[0]) {
 		return `You are not skilled enough to participate in the Volcanic Mine. You need the following requirements: ${objectEntries(

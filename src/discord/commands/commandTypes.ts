@@ -23,20 +23,60 @@ export interface AbstractCommandAttributes {
 	description: string;
 }
 
-function hasInvalidQuantity(value: unknown): boolean {
-	if (value === null || typeof value !== 'object') return false;
+function validateCommandOptions(value: unknown, optionDefinitions: readonly CommandOption[]): string | undefined {
+	if (value === null || typeof value !== 'object') return 'Invalid command options.';
 
-	for (const [key, nestedValue] of Object.entries(value)) {
-		if (key === 'quantity') {
-			if (typeof nestedValue !== 'number' || !Number.isSafeInteger(nestedValue) || nestedValue < 1) {
-				return true;
+	for (const option of optionDefinitions) {
+		const optionValue = (value as Record<string, unknown>)[option.name];
+		if (optionValue === undefined) {
+			if (option.required) return `${option.name} is required.`;
+			continue;
+		}
+
+		if (option.type === 'Subcommand' || option.type === 'SubcommandGroup') {
+			const error = validateCommandOptions(optionValue, option.options ?? []);
+			if (error) return error;
+			continue;
+		}
+
+		if (option.type === 'String') {
+			if (typeof optionValue !== 'string') return `${option.name} must be text.`;
+			if (option.choices && !option.choices.some(choice => choice.value === optionValue)) {
+				return `${option.name} is not a valid choice.`;
 			}
 			continue;
 		}
-		if (hasInvalidQuantity(nestedValue)) return true;
-	}
+		if (option.type === 'Boolean') {
+			if (typeof optionValue !== 'boolean') return `${option.name} must be true or false.`;
+			continue;
+		}
+		if (option.type === 'User' || option.type === 'Channel' || option.type === 'Role') {
+			if (optionValue === null || typeof optionValue !== 'object') return `${option.name} is invalid.`;
+			continue;
+		}
+		if (option.type === 'Mentionable' || option.type === 'Attachment') {
+			if (typeof optionValue !== 'string') return `${option.name} is invalid.`;
+			continue;
+		}
 
-	return false;
+		if (typeof optionValue !== 'number' || !Number.isFinite(optionValue)) {
+			return `${option.name} must be a number.`;
+		}
+		if (option.type === 'Integer' && !Number.isSafeInteger(optionValue)) {
+			return `${option.name} must be a whole number.`;
+		}
+
+		const minimum = option.min_value ?? (['quantity', 'amount', 'count', 'number'].includes(option.name) ? 1 : undefined);
+		if (minimum !== undefined && optionValue < minimum) {
+			return `${option.name} must be at least ${minimum}.`;
+		}
+		if (option.max_value !== undefined && optionValue > option.max_value) {
+			return `${option.name} must be at most ${option.max_value}.`;
+		}
+		if (option.choices && !option.choices.some(choice => choice.value === optionValue)) {
+			return `${option.name} is not a valid choice.`;
+		}
+	}
 }
 
 export function defineCommand<const T extends AnyArr<unknown>>(
@@ -55,7 +95,8 @@ export function defineCommand<const T extends AnyArr<unknown>>(
 	return {
 		...cmd,
 		async run(commandOptions: CommandRunOptions<ExtractOptions<T>>): CommandResponse {
-			if (hasInvalidQuantity(commandOptions.options)) return 'Quantity must be a positive whole number.';
+			const validationError = validateCommandOptions(commandOptions.options, cmd.options as readonly CommandOption[]);
+			if (validationError) return validationError;
 			return cmd.run(commandOptions);
 		}
 	} as unknown as OSBMahojiCommand<AsOptArr<T>>;
