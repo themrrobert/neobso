@@ -15,7 +15,7 @@ export async function minionBuyCommand(user: MUser, ironman: boolean): CommandRe
 	});
 
 	const createdAt = DiscordSnowflake.timestampFrom(user.id);
-	const starter = isAtleastThisOld(createdAt, Time.Year * 2)
+	const starter = isAtleastThisOld(createdAt, Time.Day * 180)
 		? new Bank({
 				Shark: 300,
 				'Saradomin brew(4)': 50,
