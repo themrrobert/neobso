@@ -52,12 +52,7 @@ function validateCommandOptions(value: unknown, optionDefinitions: readonly Comm
 		}
 		if (option.type === 'Boolean') {
 			if (typeof optionValue !== 'boolean') {
-				const valueDescription =
-					optionValue === null
-						? 'null'
-						: optionValue === undefined
-							? 'undefined'
-							: JSON.stringify(optionValue);
+				const valueDescription = optionValue === null ? 'null' : JSON.stringify(optionValue);
 				globalClient
 					.sendDm(globalConfig.adminUserIDs[0], {
 						content: `[${Date.now()}] Boolean option \`${option.name}\` isn't c-bool. Value: ${valueDescription}`,

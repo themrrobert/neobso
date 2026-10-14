@@ -207,6 +207,8 @@ export function convertAPIOptionsToCommandOptions({
 				user,
 				member
 			};
+		} else if (opt.type === ApplicationCommandOptionType.Integer) {
+			parsedOptions[opt.name] = Number(opt.value);
 		} else {
 			parsedOptions[opt.name as string] = opt.value;
 		}

@@ -39,7 +39,7 @@ export const buyCommand = defineCommand({
 			}
 		},
 		{
-			type: 'Integer',
+			type: 'String',
 			name: 'quantity',
 			description: 'The quantity you want to buy (optional).',
 			required: false,
@@ -47,10 +47,6 @@ export const buyCommand = defineCommand({
 		}
 	],
 	run: async ({ options, user, interaction, channelId }) => {
-		if (options.quantity !== undefined && (!Number.isSafeInteger(options.quantity) || options.quantity < 1)) {
-			return 'Quantity must be a positive whole number.';
-		}
-
 		const { name } = options;
 		let quantity: number | null = mahojiParseNumber({ input: options.quantity, min: 1 });
 
