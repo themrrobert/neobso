@@ -2,6 +2,7 @@ import type { PermissionKey, SpecialResponse } from '@oldschoolgg/discord';
 import type { IMember } from '@oldschoolgg/schemas';
 
 import type { AnyArr, AsOptArr, ExtractOptions } from '@/discord/index.js';
+import { globalConfig } from '@/lib/constants.js';
 
 export type CategoryFlag =
 	| 'minion'
@@ -23,13 +24,16 @@ export interface AbstractCommandAttributes {
 	description: string;
 }
 
+function inputValidationErrorMsg(optionName: string, problem: string) {
+	return `Input error: \`${optionName}\` ${problem}`;
+}
 function validateCommandOptions(value: unknown, optionDefinitions: readonly CommandOption[]): string | undefined {
 	if (value === null || typeof value !== 'object') return 'Invalid command options.';
 
 	for (const option of optionDefinitions) {
-		const optionValue = (value as Record<string, unknown>)[option.name];
+		let optionValue = (value as Record<string, unknown>)[option.name];
 		if (optionValue === undefined) {
-			if (option.required) return `${option.name} is required.`;
+			if (option.required) return inputValidationErrorMsg(option.name, 'is required.');
 			continue;
 		}
 
@@ -40,34 +44,46 @@ function validateCommandOptions(value: unknown, optionDefinitions: readonly Comm
 		}
 
 		if (option.type === 'String') {
-			if (typeof optionValue !== 'string') return `${option.name} must be text.`;
+			if (typeof optionValue !== 'string') return inputValidationErrorMsg(option.name, 'must be text.');
 			if (option.choices && !option.choices.some(choice => choice.value === optionValue)) {
-				return `${option.name} is not a valid choice.`;
+				return inputValidationErrorMsg(option.name, 'is not a valid choice.');
 			}
 			continue;
 		}
 		if (option.type === 'Boolean') {
-			if (typeof optionValue !== 'boolean') return `${option.name} must be true or false.`;
-			continue;
-		}
-		if (option.type === 'User' || option.type === 'Channel' || option.type === 'Role') {
-			if (optionValue === null || typeof optionValue !== 'object') return `${option.name} is invalid.`;
-			continue;
-		}
-		if (option.type === 'Mentionable' || option.type === 'Attachment') {
-			if (typeof optionValue !== 'string') return `${option.name} is invalid.`;
+			if (typeof optionValue !== 'boolean') {
+				const valueDescription =
+					optionValue === null
+						? 'null'
+						: optionValue === undefined
+							? 'undefined'
+							: JSON.stringify(optionValue);
+				globalClient
+					.sendDm(globalConfig.adminUserIDs[0], {
+						content: `[${Date.now()}] Boolean option \`${option.name}\` isn't c-bool. Value: ${valueDescription}`,
+						files: [
+							{
+								buffer: Buffer.from(JSON.stringify({ optionDefinitions, value }, null, 2)),
+								name: 'command-options.json'
+							}
+						]
+					})
+					.catch(() => {});
+				return inputValidationErrorMsg(option.name, 'must be true or false. Please tell Cyr');
+			}
 			continue;
 		}
 		if (option.type !== 'Integer' && option.type !== 'Number') continue;
 
+		optionValue = Number(optionValue);
 		if (typeof optionValue !== 'number' || !Number.isFinite(optionValue)) {
-			return `${option.name} must be a number.`;
+			return inputValidationErrorMsg(option.name, 'must be a number.');
 		}
 		if (option.type === 'Integer' && !Number.isSafeInteger(optionValue)) {
-			return `${option.name} must be a whole number.`;
+			return inputValidationErrorMsg(option.name, 'must be a whole number.');
 		}
 		if (optionValue < 0 && !option.allowNegative) {
-			return `${option.name} cannot be negative.`;
+			return inputValidationErrorMsg(option.name, 'cannot be negative.');
 		}
 
 		let minimum = option.min_value;
@@ -77,13 +93,13 @@ function validateCommandOptions(value: unknown, optionDefinitions: readonly Comm
 			minimum = 1;
 		}
 		if (minimum !== undefined && optionValue < minimum) {
-			return `${option.name} must be at least ${minimum}.`;
+			return inputValidationErrorMsg(option.name, `must be at least ${minimum}.`);
 		}
 		if (option.max_value !== undefined && optionValue > option.max_value) {
-			return `${option.name} must be at most ${option.max_value}.`;
+			return inputValidationErrorMsg(option.name, `must be at most ${option.max_value}.`);
 		}
 		if (option.choices && !option.choices.some(choice => choice.value === optionValue)) {
-			return `${option.name} is not a valid choice.`;
+			return inputValidationErrorMsg(option.name, 'is not a valid choice.');
 		}
 	}
 }

@@ -182,7 +182,7 @@ export class MUserClass extends BaseUser {
 		return getPerkTierCached(this.id) !== null;
 	}
 
-	async fetchPerkTier({ forceNoCache }: { forceNoCache?: boolean } = {}): Promise<0 | PerkTier> {
+	async fetchPerkTier({ forceNoCache }: { forceNoCache?: boolean } = {}): Promise<PerkTier> {
 		return await getUsersPerkTier({ user: this, forceNoCache });
 	}
 
