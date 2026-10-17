@@ -25,10 +25,11 @@ const TEST_SERVER_LOG_CHANNEL = process.env.TESTING_LOG_CHANNEL ?? '104276044783
 export const BETA_GUILD_ALLOWLIST_ENABLED = true;
 const BETA_GUILD_ALLOWLIST = new Set(['940758552425955348', '342983479501389826', '464965283270885397']);
 
-export function isBetaGuildBlocked(guildId: string | null | undefined) {
-	return (
-		BETA_GUILD_ALLOWLIST_ENABLED && guildId !== null && guildId !== undefined && !BETA_GUILD_ALLOWLIST.has(guildId)
-	);
+export function isBetaGuildBlocked(testGuildId: string | null | undefined) {
+	if (!BETA_GUILD_ALLOWLIST_ENABLED) return false;
+
+	// Direct messages have no guild ID, so block them while the allowlist is active.
+	return testGuildId === null || testGuildId === undefined || !BETA_GUILD_ALLOWLIST.has(testGuildId);
 }
 
 export const DELETED_USER_ID = '111111111111111111';
