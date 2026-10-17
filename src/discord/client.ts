@@ -3,7 +3,7 @@ import { ActivityType, GatewayIntentBits, PresenceUpdateStatus } from '@oldschoo
 import { onRawGuildCreate } from '@/discord/handlers/guildCreate.js';
 import { interactionHandler } from '@/discord/interactionHandler.js';
 import { OldSchoolBotClient } from '@/discord/OldSchoolBotClient.js';
-import { Channel, globalConfig } from '@/lib/constants.js';
+import { Channel, globalConfig, isBetaGuildBlocked } from '@/lib/constants.js';
 import { onMessage } from '@/lib/events.js';
 import { onStartup } from '@/mahoji/lib/events.js';
 
@@ -50,6 +50,11 @@ client.on('error', err => Logging.logError(err));
 
 client.on('interactionCreate', async itx => {
 	const guildId = itx.guild_id ?? null;
+	if (guildId && isBetaGuildBlocked(guildId)) {
+		await globalClient.leaveGuild(guildId);
+		return;
+	}
+
 	const userId = (itx.member?.user.id ?? itx.user?.id)!;
 	try {
 		const [isUserBlacklisted, isGuildBlacklisted] = await Promise.all([
@@ -80,6 +85,11 @@ client.on('debug', async ({ message }) => {
 
 client.on('guildCreate', onRawGuildCreate);
 client.on('guildCreate', async guild => {
+	if (isBetaGuildBlocked(guild.id)) {
+		await globalClient.leaveGuild(guild.id);
+		return;
+	}
+
 	const [isUserBlacklisted, isGuildBlacklisted] = await Promise.all([
 		Cache.isUserBlacklisted(guild.owner_id),
 		Cache.isGuildBlacklisted(guild.id)

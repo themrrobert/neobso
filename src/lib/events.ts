@@ -19,7 +19,7 @@ import type { command_name_enum } from '@/prisma/main.js';
 import { bulkUpdateCommands } from '@/discord/index.js';
 import { mentionCommand } from '@/discord/utils.js';
 import { lastRoboChimpSyncCache } from '@/lib/cache.js';
-import { CONSTANTS, globalConfig } from '@/lib/constants.js';
+import { CONSTANTS, globalConfig, isBetaGuildBlocked } from '@/lib/constants.js';
 import { customItems } from '@/lib/customItems/util.js';
 import { roboChimpSyncData } from '@/lib/roboChimp.js';
 import type { ActivityTaskData } from '@/lib/types/minions.js';
@@ -335,6 +335,10 @@ export async function onMessage(msg: IMessage) {
 	const commandMatch = content.match(commandRegex);
 	const statusMatch = content.match(statusRegex);
 	if (!commandMatch && !statusMatch) return;
+	if (isBetaGuildBlocked(msg.guild_id)) {
+		await globalClient.leaveGuild(msg.guild_id!);
+		return;
+	}
 
 	const sendable = await globalClient.channelIsSendable(msg.channel_id);
 	if (!sendable) return;

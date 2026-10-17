@@ -12,14 +12,25 @@ import { SkillsArray } from '@/lib/skilling/types.js';
 export { PerkTier };
 
 dotenv.config({ path: path.resolve(process.cwd(), process.env.TEST ? '.env.test' : '.env') });
-type BotType = 'OSB' | 'BSO';
-export const BOT_TYPE: BotType = 'BSO' as 'BSO' | 'OSB';
-export const BOT_TYPE_LOWERCASE: 'bso' | 'osb' = BOT_TYPE.toLowerCase() as 'bso' | 'osb';
+export type BotType = 'OSB' | 'BSO' | 'Neo';
+export type LowercaseBotType = Lowercase<BotType>;
+export const BOT_TYPE = 'Neo' as BotType;
+export const BOT_TYPE_LOWERCASE = BOT_TYPE.toLowerCase() as LowercaseBotType;
 const isProduction = process.env.NODE_ENV === 'production';
 const GENERAL_CHANNEL_ID = '1555081219811581972';
 const OLDSCHOOLGG_TESTING_SERVER_ID = '940758552425955348';
 const TEST_SERVER_ID = process.env.TESTING_SERVER ?? OLDSCHOOLGG_TESTING_SERVER_ID;
 const TEST_SERVER_LOG_CHANNEL = process.env.TESTING_LOG_CHANNEL ?? '1042760447830536212';
+// Set to false when beta testing ends.
+export const BETA_GUILD_ALLOWLIST_ENABLED = true;
+const BETA_GUILD_ALLOWLIST = new Set(['940758552425955348', '342983479501389826', '464965283270885397']);
+
+export function isBetaGuildBlocked(guildId: string | null | undefined) {
+	return (
+		BETA_GUILD_ALLOWLIST_ENABLED && guildId !== null && guildId !== undefined && !BETA_GUILD_ALLOWLIST.has(guildId)
+	);
+}
+
 export const DELETED_USER_ID = '111111111111111111';
 export const BOT_AVATAR_HASH =
 	BOT_TYPE === 'OSB' ? '99c10999dc733528115dea1e061f3209' : '26bf6ee2aee1402680862d26eeeef2b5';
@@ -54,6 +65,13 @@ const BSOChannelConfig: ChannelConfig = {
 	GeneralChannel: GENERAL_CHANNEL_ID
 };
 
+const NeoChannelConfig: ChannelConfig = {
+	...BSOChannelConfig,
+	Notifications: '1560243215767183482',
+	GrandExchange: '1555090778261422100',
+	HelpAndSupport: '1560244162492768256'
+};
+
 const TestChannelConfig: ChannelConfig = {
 	ServerGeneral: TEST_SERVER_LOG_CHANNEL,
 	Notifications: TEST_SERVER_LOG_CHANNEL,
@@ -64,7 +82,13 @@ const TestChannelConfig: ChannelConfig = {
 	GeneralChannel: TEST_SERVER_LOG_CHANNEL
 };
 
-export const Channel = isProduction ? (BOT_TYPE === 'OSB' ? OSBChannelConfig : BSOChannelConfig) : TestChannelConfig;
+export const Channel = isProduction
+	? BOT_TYPE === 'OSB'
+		? OSBChannelConfig
+		: BOT_TYPE === 'BSO'
+			? BSOChannelConfig
+			: NeoChannelConfig
+	: TestChannelConfig;
 
 export const Roles = {
 	Booster: '665908237152813057',

@@ -3,7 +3,7 @@ import * as z from 'zod';
 export const ZTestBotDataUpdate = z.object({
 	type: z.literal('data_update'),
 	data: z.strictObject({
-		bot_type: z.enum(['BSO', 'OSB']),
+		bot_type: z.enum(['BSO', 'OSB', 'Neo']),
 		username: z.string(),
 		avatar_url: z.string().url().optional().nullable().default(null),
 		start_time: z.string().datetime()

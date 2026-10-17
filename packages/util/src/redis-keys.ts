@@ -18,6 +18,17 @@ export const RedisKeys = {
 	},
 	BSO: {
 		User: {
+			BadgedUsername: (id: string): string => `bso:user:${id.toString()}:badged_username`,
+			LockStatus: (id: string): string => `bso:user:${id.toString()}:lock_status`,
+			Ratelimit: (id: string, type: string): string => `bso:user:${id.toString()}:ratelimit:${type}`
+		},
+		GuildSettings: (id: string): string => `bso:guild:${id.toString()}:settings`,
+		DisabledCommands: 'bso:disabled_commands',
+		Webhook: (channelId: string): string => `bso:webhook:${channelId}`,
+		WebhookPermissions: (channelId: string): string => `bso:webhook_permissions:${channelId}`
+	},
+	Neo: {
+		User: {
 			BadgedUsername: (id: string): string => `neo:user:${id.toString()}:badged_username`,
 			LockStatus: (id: string): string => `neo:user:${id.toString()}:lock_status`,
 			Ratelimit: (id: string, type: string): string => `neo:user:${id.toString()}:ratelimit:${type}`

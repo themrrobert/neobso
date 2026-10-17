@@ -26,6 +26,7 @@ import type { MakePartyOptions } from '@/lib/types/index.js';
 import { allCommandsDONTIMPORT } from '@/mahoji/commands/allCommands.js';
 
 const MAX_MESSAGE_LENGTH = 1950;
+
 const WEBHOOK_AVATAR_PATH = `./src/lib/resources/images/discord/${BOT_TYPE_LOWERCASE}-avatar.webp`;
 
 function splitContentIntoMessages(content: string): string[] {
