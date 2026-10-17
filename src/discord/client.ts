@@ -50,6 +50,7 @@ client.on('error', err => Logging.logError(err));
 
 client.on('interactionCreate', async itx => {
 	const guildId = itx.guild_id ?? null;
+	if (!guildId) return;
 	if (guildId && isBetaGuildBlocked(guildId)) {
 		await globalClient.leaveGuild(guildId);
 		return;

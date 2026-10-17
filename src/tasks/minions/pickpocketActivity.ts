@@ -4,7 +4,7 @@ import { clueUpgraderEffect } from '@/lib/bso/skills/invention/effects/clueUpgra
 import { forcefullyUnequipItem } from '@/lib/bso/util/forcefullyUnequipItem.js';
 
 import { Time } from '@oldschoolgg/toolkit';
-import { Items, resolveItems } from 'oldschooljs';
+import {Bank, Items, resolveItems} from 'oldschooljs';
 
 import { ClueTiers } from '@/lib/clues/clueTiers.js';
 import { Thieving } from '@/lib/skilling/skills/thieving/index.js';
@@ -108,7 +108,7 @@ export const pickpocketTask: MinionTask = {
 		if (user.hasEquipped("Thieves' armband")) {
 			boosts.push('3x loot for Thieves armband');
 			updateBank.itemLootBank.multiply(3, notMultiplied);
-			await perHourChance(
+			perHourChance(
 				duration,
 				40,
 				async () => {
@@ -155,7 +155,10 @@ export const pickpocketTask: MinionTask = {
 
 		updateBank.userStatsBankUpdates.steal_loot_bank = updateBank.itemLootBank;
 
-		const txResult = await updateBank.transactWithItemsOrThrow(user);
+		const txResult = await updateBank.transact(user);
+		if (typeof txResult === 'string') {
+			throw new Error(txResult);
+		}
 		const xpRes = await user.addXP({ skillName: 'thieving', amount: xpReceived, duration });
 
 		let str = `${user}, ${user.minionName} finished ${
@@ -184,19 +187,20 @@ export const pickpocketTask: MinionTask = {
 		if (boosts.length > 0) {
 			str += `\n\n**Messages:** ${boosts.join(', ')}`;
 		}
-		const { itemsAdded, previousCL } = txResult.itemTransactionResult;
+		const itemTransactionResult = txResult.itemTransactionResult;
+		const itemsAdded = itemTransactionResult?.itemsAdded ?? new Bank();
 
 		const message = new MessageBuilder().setContent(str);
-		if (itemsAdded.length > 0) {
+		if (itemTransactionResult && itemsAdded.length > 0) {
 			message.addBankImage({
 				bank: itemsAdded,
 				title: `Loot From ${successfulQuantity} ${obj.name}:`,
 				user,
-				previousCL
+				previousCL: itemTransactionResult.previousCL
 			});
 		}
 
-		handleTripFinish({
+		void handleTripFinish({
 			user,
 			channelId,
 			message,

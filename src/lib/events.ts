@@ -336,7 +336,9 @@ export async function onMessage(msg: IMessage) {
 	const statusMatch = content.match(statusRegex);
 	if (!commandMatch && !statusMatch) return;
 	if (isBetaGuildBlocked(msg.guild_id)) {
-		await globalClient.leaveGuild(msg.guild_id!);
+		if (msg.guild_id) {
+			await globalClient.leaveGuild(msg.guild_id);
+		}
 		return;
 	}
 
