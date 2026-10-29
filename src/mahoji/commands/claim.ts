@@ -109,10 +109,10 @@ const claimables = [
 				allItemsCanGet.push(...HolidayItems.Halloween.halloweenOnlyForPermIrons);
 				messages.push('As a permanent ironman, you are eligible for extra Halloween items!');
 			}
-			const ownedItems = user.allItemsOwned;
+			const claimedItems = user.cl;
 			const itemsToAdd = new Bank();
 			for (const item of allItemsCanGet) {
-				if (!ownedItems.has(item)) {
+				if (!claimedItems.has(item)) {
 					itemsToAdd.add(item);
 				}
 			}
