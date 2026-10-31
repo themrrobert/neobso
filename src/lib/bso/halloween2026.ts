@@ -35,7 +35,7 @@ const cobMessages = [
 ];
 
 export function isHalloween2026Active(date = new Date()): boolean {
-	return date >= new Date('2026-10-01T00:00:00.000Z') && date < new Date('2026-11-01T00:00:00.000Z');
+	return date >= new Date('2026-10-01T00:00:00.000Z') && date < new Date('2026-11-10T00:00:00.000Z');
 }
 
 export async function handleHalloween2026TripFinish({
