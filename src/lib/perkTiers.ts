@@ -1,8 +1,9 @@
+import { findGroupOfUser } from '@/lib/bso/util/findGroupOfUser.js';
+
 import { getPerkTierEx, Time } from '@oldschoolgg/toolkit';
 import { LRUCache } from 'lru-cache';
 
 import { BitField, BOT_TYPE, PerkTier } from '@/lib/constants.js';
-import { findGroupOfUser } from '@/lib/bso/util/findGroupOfUser.js';
 import type { RobochimpUser } from '@/lib/roboChimp.js';
 
 export const RobochimpBitfieldEnum = {
@@ -69,11 +70,11 @@ export function getPerkTierCached(userId: string) {
 
 export async function getGroupRoboChimpUsers(userId: string, forceNoCache = false) {
 	const groupUserIds = await findGroupOfUser(userId);
-	return Promise.all(groupUserIds.map(groupUserId => Cache.getRoboChimpUser(groupUserId, forceNoCache)));
+	return Promise.all(groupUserIds.map(u => Cache.getRoboChimpUser(u, forceNoCache)));
 }
 
 export async function getGroupRoboChimpBits(userId: string, forceNoCache = false) {
-	return (await getGroupRoboChimpUsers(userId, forceNoCache)).flatMap(roboChimpUser => roboChimpUser.bits);
+	return (await getGroupRoboChimpUsers(userId, forceNoCache)).flatMap(ru => ru.bits);
 }
 
 export function getRoboChimpPaidTierDisplay(bits: number[], { perkTier }: { perkTier?: number | null }): string;

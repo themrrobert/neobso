@@ -2,13 +2,7 @@ import { feedHammyCommand } from '@/lib/bso/commands/hammyCommand.js';
 import { findGroupOfUser } from '@/lib/bso/util/findGroupOfUser.js';
 
 import { bold } from '@oldschoolgg/discord';
-import {
-	FormattedCustomEmoji,
-	formatDuration,
-	formatOrdinal,
-	notEmpty,
-	roboChimpCLRankQuery
-} from '@oldschoolgg/toolkit';
+import { FormattedCustomEmoji, formatOrdinal, notEmpty, roboChimpCLRankQuery } from '@oldschoolgg/toolkit';
 import { convertLVLtoXP, Items } from 'oldschooljs';
 
 import { ownedItemOption, skillOption } from '@/discord/index.js';
@@ -56,7 +50,7 @@ const patMessages = [
 export async function getUserInfo(user: MUser) {
 	await refreshUserCache({ user });
 	const roboChimpUsers = await getGroupRoboChimpUsers(user.id);
-	const roboChimpUser = roboChimpUsers.find(roboChimpUser => roboChimpUser.id === BigInt(user.id))!;
+	const roboChimpUser = roboChimpUsers.find(ru => ru.id === BigInt(user.id))!;
 	const leaguesRanking = await roboChimpClient.user.count({
 		where: {
 			leagues_points_total: {
@@ -83,42 +77,20 @@ export async function getUserInfo(user: MUser) {
 		isIronman: user.isIronman,
 		bitfields,
 		currentTask: taskText,
-		patreon: roboChimpUsers.some(roboChimpUser => roboChimpUser.patreon_id) ? 'Yes' : 'None',
-		github: roboChimpUsers.some(roboChimpUser => roboChimpUser.github_id) ? 'Yes' : 'None'
+		patreon: roboChimpUsers.some(ru => ru.patreon_id) ? 'Yes' : 'None',
+		github: roboChimpUsers.some(ru => ru.github_id) ? 'Yes' : 'None'
 	};
 
 	const globalCLPercent = (((roboChimpUser.bso_cl_percent ?? 0) + (roboChimpUser.osb_cl_percent ?? 0)) / 2).toFixed(
 		2
 	);
 
-	const premium = roboChimpUsers
-		.filter(
-			roboChimpUser =>
-				roboChimpUser.premium_balance_tier &&
-				roboChimpUser.premium_balance_expiry_date &&
-				Number(roboChimpUser.premium_balance_expiry_date) > Date.now()
-		)
-		.sort(
-			(a, b) =>
-				b.premium_balance_tier! - a.premium_balance_tier! ||
-				Number(b.premium_balance_expiry_date! - a.premium_balance_expiry_date!)
-		)[0];
-	const premiumPerkTier = premium?.premium_balance_tier ?? 0;
-	const groupPerkTier = Math.max(...roboChimpUsers.map(roboChimpUser => roboChimpUser.perk_tier), 0);
-
-	let perkTierDisplay = getRoboChimpPaidTierDisplay(roboChimpUsers.flatMap(roboChimpUser => roboChimpUser.bits), {
-		perkTier: groupPerkTier
-	});
-	if (premium && premiumPerkTier > groupPerkTier) {
-		perkTierDisplay = `Premium __Tier ${premiumPerkTier - 1}__ - ${formatDuration(Number(premium.premium_balance_expiry_date!) - Date.now())} remaining`;
-	}
-	if (result.perkTier > groupPerkTier && result.perkTier > premiumPerkTier) {
-		if (user.isMod() || user.isWikiContrib() || user.isContributor() || user.isTrusted()) {
-			perkTierDisplay = `**Courtesy** __Tier ${result.perkTier - 1}__`;
-		} else {
-			perkTierDisplay = `🔴 **Expiring** __Tier ${result.perkTier - 1}__`;
+	const perkTierDisplay = getRoboChimpPaidTierDisplay(
+		roboChimpUsers.flatMap(ru => ru.bits),
+		{
+			perkTier: result.perkTier
 		}
-	}
+	);
 	return {
 		...result,
 		everythingString: `${user.badgedUsername}[${user.id}]
