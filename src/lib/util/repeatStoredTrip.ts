@@ -78,7 +78,6 @@ import type {
 	PickpocketActivityTaskOptions,
 	PuroPuroActivityTaskOptions,
 	RaidsOptions,
-	RoguesDenMazeActivityTaskOptions,
 	RunecraftActivityTaskOptions,
 	SawmillActivityTaskOptions,
 	ScatteringActivityTaskOptions,
@@ -643,8 +642,8 @@ const tripHandlers: {
 	},
 	[activity_type_enum.RoguesDenMaze]: {
 		commandName: 'minigames',
-		args: (data: RoguesDenMazeActivityTaskOptions) => ({
-			rogues_den: { start: { quantity: data.iQty } }
+		args: data => ({
+			rogues_den: { start: { quantity: 'iQty' in data ? data.iQty : undefined } }
 		})
 	},
 	[activity_type_enum.Sawmill]: {

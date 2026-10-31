@@ -43,6 +43,7 @@ import type { GearBank } from '@/lib/structures/GearBank.js';
 import { PeakTier } from '@/lib/util/peaks.js';
 import { calculateHunterInput } from '@/mahoji/commands/hunt.js';
 import { calculateMiningInput } from '@/mahoji/commands/mine.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 import { calculateAgilityResult } from '@/tasks/minions/agilityActivity.js';
 import { calculateHunterResult } from '@/tasks/minions/HunterActivity/hunterActivity.js';
 import { calculateMiningResult } from '@/tasks/minions/miningActivity.js';
@@ -325,6 +326,8 @@ ${zygomiteFarmingSource
 									hasGraceful: true,
 									isUsingWebshooter: hasQuickTrap,
 									webshooterMessages: '',
+									globalSpeedMultiplier: speedCalculations({ activity: 'Hunter', multiplier: 1 })
+										.multiplier,
 									user
 								});
 

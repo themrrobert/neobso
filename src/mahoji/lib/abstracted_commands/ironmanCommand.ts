@@ -93,6 +93,7 @@ Type \`confirm permanent ironman\` if you understand the above information, and 
 		);
 	}
 
+	const username = user.username;
 	await user.sync();
 
 	type KeysThatArentReset =
@@ -103,6 +104,7 @@ Type \`confirm permanent ironman\` if you understand the above information, and 
 		| 'id'
 		| 'pets'
 		| 'RSN'
+		| 'username'
 		| 'bitfield';
 
 	const bitFieldsToKeep: BitField[] = [
@@ -128,6 +130,7 @@ Type \`confirm permanent ironman\` if you understand the above information, and 
 		minion_bought_date: user.user.minion_bought_date,
 		RSN: user.user.RSN,
 		pets: user.user.pets as ItemBank,
+		username,
 		bitfield: bitFieldsToKeep.filter(i => user.bitfield.includes(i))
 	};
 

@@ -44,7 +44,8 @@ function validateCommandOptions(value: unknown, optionDefinitions: readonly Comm
 		}
 
 		if (option.type === 'String') {
-			if (typeof optionValue !== 'string') return inputValidationErrorMsg(option.name, 'must be text.');
+			if (typeof optionValue !== 'string' && typeof optionValue !== 'number')
+				return inputValidationErrorMsg(option.name, 'must be a text or a number.');
 			if (option.choices && !option.choices.some(choice => choice.value === optionValue)) {
 				return inputValidationErrorMsg(option.name, 'is not a valid choice.');
 			}

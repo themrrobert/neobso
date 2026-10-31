@@ -1393,7 +1393,7 @@ export const minigamesCommand = defineCommand({
 		 * Rogues Den
 		 *
 		 */
-		if (options.rogues_den) {
+		if (options.rogues_den?.start) {
 			return roguesDenCommand(user, channelId, options.rogues_den.start.quantity);
 		}
 

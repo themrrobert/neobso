@@ -7,13 +7,13 @@ import {
 	tameSpecies
 } from '@/lib/bso/tames/tames.js';
 
-import { Emoji, formatDuration, round, Time } from '@oldschoolgg/toolkit';
+import { Emoji, formatDuration, getCyrTripBonus, round, Time } from '@oldschoolgg/toolkit';
 import { roll } from 'node-rng';
 import { Bank, type Item, type ItemBank, Items } from 'oldschooljs';
 
 import { type Prisma, type Tame, tame_growth } from '@/prisma/main.js';
 import { getSimilarItems } from '@/lib/data/similarItems.js';
-import { getCyrTripBonus, getGroupRoboChimpBits } from '@/lib/perkTiers.js';
+import { getGroupRoboChimpBits } from '@/lib/perkTiers.js';
 import { patronMaxTripBonus } from '@/lib/util/calcMaxTripLength.js';
 
 export class MTame {

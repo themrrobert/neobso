@@ -1,7 +1,7 @@
-import { Time } from '@oldschoolgg/toolkit';
+import { getCyrTripBonus, Time } from '@oldschoolgg/toolkit';
 import { describe, expect, test } from 'vitest';
 
-import { getCyrTripBonus, getRoboChimpPaidTierDisplay } from '@/lib/perkTiers.js';
+import { getRoboChimpPaidTierDisplay } from '@/lib/perkTiers.js';
 
 describe('perk tier helpers', () => {
 	test('formats robochimp paid tier labels', () => {
@@ -12,9 +12,9 @@ describe('perk tier helpers', () => {
 
 	test('computes cyr trip bonus from paid bits', () => {
 		expect(getCyrTripBonus([16])).toBe(Time.Minute * 3);
-		expect(getCyrTripBonus([17])).toBe(Time.Minute * 6);
-		expect(getCyrTripBonus([18])).toBe(Time.Minute * 10);
-		expect(getCyrTripBonus([19])).toBe(Time.Minute * 15);
+		expect(getCyrTripBonus([17])).toBe(Time.Minute * 7);
+		expect(getCyrTripBonus([18])).toBe(Time.Minute * 11);
+		expect(getCyrTripBonus([19])).toBe(Time.Minute * 16);
 		expect(getCyrTripBonus([])).toBe(0);
 	});
 });

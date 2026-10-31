@@ -1,4 +1,4 @@
-import { calcPercentOfNum, calcWhatPercent,getCyrTripBonus, Time } from '@oldschoolgg/toolkit';
+import { calcPercentOfNum, calcWhatPercent, getCyrTripBonus, Time } from '@oldschoolgg/toolkit';
 
 import type { activity_type_enum } from '@/prisma/main.js';
 import { BitField, PerkTier } from '@/lib/constants.js';
