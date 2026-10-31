@@ -6,6 +6,7 @@ import { pickaxes } from '@/lib/skilling/functions/miningBoosts.js';
 import Mining from '@/lib/skilling/skills/mining.js';
 import type { MotherlodeMiningActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export async function motherlodeMineCommand({
 	user,
@@ -26,6 +27,8 @@ export async function motherlodeMineCommand({
 	const motherlode = Mining.MotherlodeMine;
 
 	const boosts = [];
+	const speedResult = speedCalculations({ activity: 'MotherlodeMining', multiplier: 1 });
+	boosts.push(...speedResult.messages);
 	// Checks if user own Celestial ring or Celestial signet
 	if (user.hasEquippedOrInBank(['Celestial ring (uncharged)'])) {
 		boosts.push('+4 invisible Mining lvls for Celestial ring');
@@ -76,6 +79,7 @@ export async function motherlodeMineCommand({
 		hasGlory: user.hasEquippedOrInBank('Amulet of glory'),
 		maxTripLength: await user.calcMaxTripLength('MotherlodeMining'),
 		hasKaramjaMedium: false,
+		actionSpeedMultiplier: speedResult.multiplier,
 		rng
 	});
 

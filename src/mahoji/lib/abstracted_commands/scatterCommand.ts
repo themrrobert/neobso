@@ -4,7 +4,7 @@ import { Bank } from 'oldschooljs';
 import Prayer from '@/lib/skilling/skills/prayer.js';
 import type { ScatteringActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
-import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export async function scatterCommand(user: MUser, channelId: string, ashName: string, quantity?: number) {
 	const speedMod = 1;
@@ -37,7 +37,7 @@ export async function scatterCommand(user: MUser, channelId: string, ashName: st
 		return `You dont have ${cost}.`;
 	}
 
-	const duration = globalSpeedBoosts({ activity: 'Scattering', duration: quantity * timeToScatterAnAsh }).duration;
+	const duration = speedCalculations({ activity: 'Scattering', duration: quantity * timeToScatterAnAsh }).duration;
 
 	if (duration > maxTripLength) {
 		return `${user.minionName} can't go on trips longer than ${formatDuration(

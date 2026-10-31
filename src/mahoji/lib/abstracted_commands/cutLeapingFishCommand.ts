@@ -4,7 +4,7 @@ import { Bank } from 'oldschooljs';
 import { LeapingFish } from '@/lib/skilling/skills/cooking/leapingFish.js';
 import type { CutLeapingFishActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
-import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export async function cutLeapingFishCommand({
 	user,
@@ -44,7 +44,7 @@ export async function cutLeapingFishCommand({
 		quantity = maxCanDo;
 	}
 
-	const duration = globalSpeedBoosts({
+	const duration = speedCalculations({
 		activity: 'CutLeapingFish',
 		duration: quantity * timeToCutSingleItem
 	}).duration;

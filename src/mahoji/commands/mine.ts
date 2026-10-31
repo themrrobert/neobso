@@ -10,7 +10,7 @@ import type { GearBank } from '@/lib/structures/GearBank.js';
 import type { MiningActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
 import { formatSkillRequirements } from '@/lib/util/smallUtils.js';
-import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 import { motherlodeMineCommand } from '@/mahoji/lib/abstracted_commands/motherlodeMineCommand.js';
 
 export function calculateMiningInput({
@@ -24,6 +24,7 @@ export function calculateMiningInput({
 	craftingLevel,
 	strengthLevel,
 	maxTripLength,
+	actionSpeedMultiplier,
 	hasKaramjaMedium,
 	randomVariationEnabled = true,
 	hasDT2Quest,
@@ -40,6 +41,7 @@ export function calculateMiningInput({
 	craftingLevel: number;
 	strengthLevel: number;
 	maxTripLength: number;
+	actionSpeedMultiplier?: number;
 	hasKaramjaMedium: boolean;
 	randomVariationEnabled?: boolean;
 	rng: RNGProvider;
@@ -183,6 +185,7 @@ export function calculateMiningInput({
 		goldSilverBoost,
 		miningLvl: effectiveMiningLevel,
 		hasKaramjaMedium,
+		actionSpeedMultiplier,
 		rng
 	});
 
@@ -256,7 +259,7 @@ export const mineCommand = defineCommand({
 	],
 	run: async ({ options, user, channelId, rng }) => {
 		const { quantity, powermine } = options;
-		const globalSpeedBoost = globalSpeedBoosts({ activity: 'Mining', multiplier: 1 });
+		const globalSpeedBoost = speedCalculations({ activity: 'Mining', multiplier: 1 });
 		const hasKaramjaMedium = user.hasDiary('karamja.medium');
 
 		const motherlodeMine =
@@ -277,7 +280,8 @@ export const mineCommand = defineCommand({
 			miningLevel: user.skillLevel('mining'),
 			craftingLevel: user.skillLevel('crafting'),
 			strengthLevel: user.skillLevel('strength'),
-			maxTripLength: (await user.calcMaxTripLength('Mining')) / globalSpeedBoost.multiplier,
+			maxTripLength: await user.calcMaxTripLength('Mining'),
+			actionSpeedMultiplier: globalSpeedBoost.multiplier,
 			hasKaramjaMedium,
 			hasDT2Quest: user.user.finished_quest_ids.includes(QuestID.DesertTreasureII),
 			rng
@@ -288,9 +292,6 @@ export const mineCommand = defineCommand({
 		}
 
 		const { isPowermining, fakeDurationMax, fakeDurationMin, messages, newQuantity, ore, duration } = result;
-		const boostedDuration = duration * globalSpeedBoost.multiplier;
-		const boostedFakeDurationMax = fakeDurationMax * globalSpeedBoost.multiplier;
-		const boostedFakeDurationMin = fakeDurationMin * globalSpeedBoost.multiplier;
 		messages.push(...globalSpeedBoost.messages);
 
 		await ActivityManager.startTrip<MiningActivityTaskOptions>({
@@ -299,9 +300,9 @@ export const mineCommand = defineCommand({
 			channelId,
 			quantity: newQuantity,
 			powermine: isPowermining,
-			duration: boostedDuration,
-			fakeDurationMax: boostedFakeDurationMax,
-			fakeDurationMin: boostedFakeDurationMin,
+			duration,
+			fakeDurationMax,
+			fakeDurationMin,
 			type: 'Mining'
 		});
 
@@ -309,8 +310,8 @@ export const mineCommand = defineCommand({
 			quantity ? `mined ${newQuantity}x or gets tired` : 'is satisfied'
 		}, it'll take ${
 			quantity
-				? `between ${formatTripDuration(user, boostedFakeDurationMin)} **and** ${formatTripDuration(user, boostedFakeDurationMax)}`
-				: formatTripDuration(user, boostedDuration)
+				? `between ${formatTripDuration(user, fakeDurationMin)} **and** ${formatTripDuration(user, fakeDurationMax)}`
+				: formatTripDuration(user, duration)
 		} to finish.`;
 
 		if (user.usingPet('Doug')) {

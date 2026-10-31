@@ -7,6 +7,7 @@ import type {
 	ShadesOfMortonSacredOilOptions
 } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 type Remains = 'Loar' | 'Phrin' | 'Riyl' | 'Fiyr' | 'Asyn' | 'Urium';
 
@@ -313,6 +314,8 @@ function checkCremationRequirements(user: MUser, log: ShadesLog, shade: Shade): 
 
 export async function shadesOfMortonStartCommand(user: MUser, channelId: string, logStr: string, shadeStr: string) {
 	const messages: string[] = [];
+	const speedResult = speedCalculations({ activity: 'ShadesOfMorton', multiplier: 1 });
+	messages.push(...speedResult.messages);
 	let totalTime = await user.calcMaxTripLength('ShadesOfMorton');
 	for (let i = coffins.length - 1; i >= 0; i--) {
 		const coffin = coffins[i];
@@ -348,8 +351,9 @@ export async function shadesOfMortonStartCommand(user: MUser, channelId: string,
 		return `You can't use ${log.oiledLog.name} with ${shade.item.name}.`;
 	}
 
-	const quantity = Math.min(logsOwned, shadesOwned, Math.floor(totalTime / TIME_PER_CREMATION));
-	const duration = quantity * TIME_PER_CREMATION;
+	const actionDuration = TIME_PER_CREMATION * speedResult.multiplier;
+	const quantity = Math.min(logsOwned, shadesOwned, Math.floor(totalTime / actionDuration));
+	const duration = quantity * actionDuration;
 
 	if (quantity < 1) return 'You cannot do any cremations in that time.';
 
@@ -393,11 +397,13 @@ export async function shadesOfMortonSacredOilCommand(user: MUser, channelId: str
 	const oliveOilOwned = user.bank.amount(oliveOilItem.id);
 	if (oliveOilOwned === 0) return `You don't have any ${oliveOilItem.name} to upgrade!`;
 
+	const speedResult = speedCalculations({ activity: 'ShadesOfMortonSacredOil', multiplier: 1 });
+	const actionDuration = TIME_PER_SACRED_OIL * speedResult.multiplier;
 	const totalTime = await user.calcMaxTripLength('ShadesOfMortonSacredOil');
-	const quantity = Math.min(oliveOilOwned, Math.floor(totalTime / TIME_PER_SACRED_OIL));
+	const quantity = Math.min(oliveOilOwned, Math.floor(totalTime / actionDuration));
 	if (quantity < 1) return 'You do not have enough time to create any sacred oil.';
 
-	const duration = quantity * TIME_PER_SACRED_OIL;
+	const duration = quantity * actionDuration;
 	const cost = new Bank().add(oliveOilItem.id, quantity);
 
 	if (!user.owns(cost)) return `You don't own: ${cost}.`;
@@ -443,12 +449,14 @@ export async function shadesOfMortonCreatePyreLogsCommand(
 	if (logsOwned === 0) return `You don't have any ${recipe.log.name}!`;
 	if (sacredOilOwned === 0) return `You don't have any ${sacredOilItem.name}!`;
 
+	const speedResult = speedCalculations({ activity: 'ShadesOfMortonPyreLogs', multiplier: 1 });
+	const actionDuration = TIME_PER_PYRE_LOG * speedResult.multiplier;
 	const totalTime = await user.calcMaxTripLength('ShadesOfMortonPyreLogs');
-	const maxQuantity = Math.min(logsOwned, sacredOilOwned, Math.floor(totalTime / TIME_PER_PYRE_LOG));
+	const maxQuantity = Math.min(logsOwned, sacredOilOwned, Math.floor(totalTime / actionDuration));
 	const finalQuantity = quantity ? Math.min(quantity, maxQuantity) : maxQuantity;
 	if (finalQuantity < 1) return 'You do not have enough time or supplies to make any pyre logs.';
 
-	const duration = finalQuantity * TIME_PER_PYRE_LOG;
+	const duration = finalQuantity * actionDuration;
 	const cost = new Bank().add(recipe.log.id, finalQuantity).add(sacredOilItem.id, finalQuantity);
 
 	if (!user.owns(cost)) return `You don't own: ${cost}.`;

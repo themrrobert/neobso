@@ -103,6 +103,7 @@ function calculateSkillingSpeed(
 	let hasSkillingBoost = false;
 	switch (options.activity) {
 		case activity_type_enum.Agility:
+		case activity_type_enum.AgilityArena:
 		case activity_type_enum.Alching:
 		case activity_type_enum.AerialFishing:
 		case activity_type_enum.Birdhouse:
@@ -124,11 +125,17 @@ function calculateSkillingSpeed(
 		case activity_type_enum.Farming:
 		case activity_type_enum.Firemaking:
 		case activity_type_enum.Fishing:
+		case activity_type_enum.FishingTrawler:
 		case activity_type_enum.Fletching:
 		case activity_type_enum.Herblore:
 		case activity_type_enum.Hunter:
+		case activity_type_enum.GiantsFoundry:
+		case activity_type_enum.GnomeRestaurant:
+		case activity_type_enum.GuardiansOfTheRift:
 		case activity_type_enum.KibbleMaking:
 		case activity_type_enum.MemoryHarvest:
+		case activity_type_enum.MahoganyHomes:
+		case activity_type_enum.MageTrainingArena:
 		case activity_type_enum.Mining:
 		case activity_type_enum.MotherlodeMining:
 		case activity_type_enum.Offering:
@@ -139,11 +146,20 @@ function calculateSkillingSpeed(
 		case activity_type_enum.Runecraft:
 		case activity_type_enum.Sawmill:
 		case activity_type_enum.Scattering:
+		case activity_type_enum.Sepulchre:
+		case activity_type_enum.ShadesOfMorton:
+		case activity_type_enum.ShadesOfMortonPyreLogs:
+		case activity_type_enum.ShadesOfMortonSacredOil:
 		case activity_type_enum.Smelting:
 		case activity_type_enum.Smithing:
 		case activity_type_enum.TiaraRunecraft:
 		case activity_type_enum.UnderwaterAgilityThieving:
 		case activity_type_enum.Tempoross:
+		case activity_type_enum.TitheFarm:
+		case activity_type_enum.TinkeringWorkshop:
+		case activity_type_enum.TroubleBrewing:
+		case activity_type_enum.BaxtorianBathhouses:
+		case activity_type_enum.VolcanicMine:
 		case activity_type_enum.Wintertodt:
 		case activity_type_enum.Woodcutting:
 		case activity_type_enum.Zalcano:
@@ -275,15 +291,4 @@ export function speedCalculations(
 ) {
 	if ('activity' in options) return calculateSkillingSpeed(options);
 	return combatSpeedCalculations(options);
-}
-
-/** @deprecated Use speedCalculations. */
-export function globalSpeedBoosts(options: DurationSpeedBoostOptions): DurationSpeedBoostResult;
-/** @deprecated Use speedCalculations. */
-export function globalSpeedBoosts(options: MultiplierSpeedBoostOptions): MultiplierSpeedBoostResult;
-export function globalSpeedBoosts(
-	options: DurationSpeedBoostOptions | MultiplierSpeedBoostOptions
-): DurationSpeedBoostResult | MultiplierSpeedBoostResult {
-	if (options.duration !== undefined) return speedCalculations(options);
-	return speedCalculations(options);
 }

@@ -4,6 +4,7 @@ import { Bank, Items } from 'oldschooljs';
 import chatHeadImage from '@/lib/canvas/chatHeadImage.js';
 import type { MinigameActivityTaskOptionsWithNoChanges } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 const plainGraceful = new Bank({
 	'Graceful hood': 1,
@@ -63,13 +64,15 @@ export async function agilityArenaCommand(
 	}
 
 	const userMaxTrip = await user.calcMaxTripLength('AgilityArena');
-	const maxQuantity = userMaxTrip / Time.Minute;
+	const speedResult = speedCalculations({ activity: 'AgilityArena', multiplier: 1 });
+	const durationPerRound = Time.Minute * speedResult.multiplier;
+	const maxQuantity = Math.floor(userMaxTrip / durationPerRound);
 
-	if (!quantity || quantity * Time.Minute > userMaxTrip) {
+	if (!quantity || quantity * durationPerRound > userMaxTrip) {
 		quantity = maxQuantity;
 	}
 
-	const duration = quantity * Time.Minute;
+	const duration = quantity * durationPerRound;
 
 	if (!user.hasGracefulEquipped()) {
 		return {
@@ -83,6 +86,7 @@ export async function agilityArenaCommand(
 	}
 
 	const boosts: string[] = [];
+	boosts.push(...speedResult.messages);
 
 	const hasKaramjaElite = user.hasDiary('karamja.elite');
 	if (hasKaramjaElite) {

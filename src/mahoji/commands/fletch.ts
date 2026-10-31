@@ -4,7 +4,7 @@ import { Fletchables } from '@/lib/skilling/skills/fletching/fletchables/index.j
 import Fletching from '@/lib/skilling/skills/fletching/index.js';
 import type { FletchingActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
-import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export const fletchCommand = defineCommand({
 	name: 'fletch',
@@ -93,7 +93,7 @@ export const fletchCommand = defineCommand({
 		}
 
 		timeToFletchSingleItem /= boost;
-		const globalSpeedBoost = globalSpeedBoosts({ activity: 'Fletching', messages: boostMsg, multiplier: 1 });
+		const globalSpeedBoost = speedCalculations({ activity: 'Fletching', messages: boostMsg, multiplier: 1 });
 		timeToFletchSingleItem *= globalSpeedBoost.multiplier;
 		boostMsg.splice(0, boostMsg.length, ...globalSpeedBoost.messages);
 

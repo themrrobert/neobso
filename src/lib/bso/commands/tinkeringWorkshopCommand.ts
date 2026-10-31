@@ -6,6 +6,7 @@ import { MaterialBank } from '@/lib/bso/skills/invention/MaterialBank.js';
 import { formatDuration, Time } from '@oldschoolgg/toolkit';
 import { randomVariation } from 'node-rng';
 import type { ItemBank } from 'oldschooljs';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export async function tinkeringWorkshopCommand(user: MUser, material: string, channelId: string) {
 	if (!isValidMaterialType(material)) {
@@ -13,7 +14,8 @@ export async function tinkeringWorkshopCommand(user: MUser, material: string, ch
 	}
 	if (await user.minionIsBusy()) return 'Your minion is busy.';
 
-	const gameTime = Time.Minute * 12.5;
+	const speedResult = speedCalculations({ activity: 'TinkeringWorkshop', multiplier: 1 });
+	const gameTime = Time.Minute * 12.5 * speedResult.multiplier;
 	const quantity = Math.floor((await user.calcMaxTripLength('TinkeringWorkshop')) / gameTime);
 	const duration = randomVariation(quantity * gameTime, 5);
 
@@ -35,7 +37,7 @@ export async function tinkeringWorkshopCommand(user: MUser, material: string, ch
 		user.minionName
 	} is now off to do ${quantity}x Tinkering Workshop projects! The total trip will take ${formatDuration(
 		duration
-	)}. Removed ${materialCost}.`;
+	)}. Removed ${materialCost}.\n\n**Boosts:** ${speedResult.messages.join(', ')}.`;
 
 	await ActivityManager.startTrip<TinkeringWorkshopOptions>({
 		userID: user.id,

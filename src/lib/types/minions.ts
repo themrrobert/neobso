@@ -326,6 +326,7 @@ export interface HunterActivityTaskOptions extends ActivityTaskOptions {
 	type: 'Hunter';
 	creatureID: number;
 	quantity: number;
+	iQty?: number;
 	usingHuntPotion?: boolean;
 	wildyPeak?: Peak | null;
 	usingStaminaPotion?: boolean;

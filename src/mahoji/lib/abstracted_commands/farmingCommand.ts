@@ -9,7 +9,7 @@ import { Farming } from '@/lib/skilling/skills/farming/index.js';
 import type { Plant } from '@/lib/skilling/types.js';
 import type { FarmingActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
-import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 function treeCheck(plant: Plant, wcLevel: number, bal: number, quantity: number): string | null {
 	if (plant.needsChopForHarvest && plant.treeWoodcuttingLevel && wcLevel < plant.treeWoodcuttingLevel) {
@@ -79,7 +79,7 @@ export async function harvestCommand({
 		boostStr.push('25% faster for Moondash charm');
 		duration = reduceNumByPercent(duration, 25);
 	}
-	const globalSpeedBoost = globalSpeedBoosts({ activity: 'Farming', duration, messages: boostStr });
+	const globalSpeedBoost = speedCalculations({ activity: 'Farming', duration, messages: boostStr });
 	duration = globalSpeedBoost.duration;
 	boostStr.splice(0, boostStr.length, ...globalSpeedBoost.messages);
 
@@ -231,7 +231,7 @@ export async function farmingPlantCommand({
 		boostStr.push(`4% time for Ardougne Elite diary`);
 		duration *= 0.96;
 	}
-	const globalSpeedBoost = globalSpeedBoosts({ activity: 'Farming', duration, messages: boostStr });
+	const globalSpeedBoost = speedCalculations({ activity: 'Farming', duration, messages: boostStr });
 	duration = globalSpeedBoost.duration;
 	boostStr.splice(0, boostStr.length, ...globalSpeedBoost.messages);
 

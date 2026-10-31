@@ -310,6 +310,7 @@ export async function calcFishingTripStart({
 	hasWildyEliteDiary,
 	rng,
 	sharkLureQuantity,
+	globalSpeedMultiplier = 1,
 	user
 }: {
 	gearBank: GearBank;
@@ -321,6 +322,7 @@ export async function calcFishingTripStart({
 	hasWildyEliteDiary: boolean;
 	rng?: RNGProvider;
 	sharkLureQuantity?: SharkLureQuantity;
+	globalSpeedMultiplier?: number;
 	user?: MUser;
 }) {
 	const rngProvider = rng ?? MathRNG;
@@ -348,7 +350,7 @@ export async function calcFishingTripStart({
 	const availableFeathers = baitIsFeather ? gearBank.bank.amount(FEATHER_ID) : 0;
 	const availableFeatherPacks = baitIsFeather ? gearBank.bank.amount(FEATHER_PACK_ID) : 0;
 	const totalFeatherSupply = baitIsFeather ? availableFeathers + availableFeatherPacks * FEATHER_PACK_SIZE : 0;
-	let tripSpeedMultiplier = 1;
+	let tripSpeedMultiplier = 1 / globalSpeedMultiplier;
 
 	if (['Minnow', 'Karambwanji'].includes(fish.name)) {
 		isPowerfishing = false;

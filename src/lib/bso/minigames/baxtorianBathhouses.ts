@@ -1,5 +1,6 @@
 import { GLOBAL_BSO_XP_MULTIPLIER } from '@/lib/bso/bsoConstants.js';
 import type { BathhouseTaskOptions } from '@/lib/bso/bsoTypes.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 import { MysteryBoxes } from '@/lib/bso/openables/tables.js';
 import type { MTame } from '@/lib/bso/structures/MTame.js';
 
@@ -278,8 +279,10 @@ export async function baxtorianBathhousesStartCommand({
 	}
 	const userBank = user.bank;
 	const maxTripLength = await user.calcMaxTripLength('BaxtorianBathhouses');
-	const quantity = Math.floor(maxTripLength / durationPerBaxBath);
-	const duration = quantity * durationPerBaxBath;
+	const speedResult = speedCalculations({ activity: 'BaxtorianBathhouses', multiplier: 1 });
+	const actionDuration = durationPerBaxBath * speedResult.multiplier;
+	const quantity = Math.floor(maxTripLength / actionDuration);
+	const duration = quantity * actionDuration;
 	const bathHouseTier = bathHouseTiers.find(i => stringMatches(i.name, tier)) ?? bathHouseTiers[0];
 	const warmthNeeded = bathHouseTier.warmthPerBath * quantity;
 	const herbsNeeded = calcHerbsNeeded(quantity);
@@ -318,6 +321,7 @@ export async function baxtorianBathhousesStartCommand({
 	}
 
 	const boosts: string[] = [];
+	boosts.push(...speedResult.messages);
 
 	const tames = await user.fetchTames();
 	const tameToUse: MTame | undefined = tames.find(_t => _t.isIgne());

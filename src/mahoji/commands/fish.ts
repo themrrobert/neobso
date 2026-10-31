@@ -12,7 +12,7 @@ import {
 import type { FishingActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
 import { bankToStrShortNames, formatSkillRequirements } from '@/lib/util/smallUtils.js';
-import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 const FEATHER_PACK_SIZE = 100;
 
@@ -102,8 +102,8 @@ export const fishCommand = defineCommand({
 			return 'You need to own the Angler Outfit to fish for Minnows.';
 		}
 
-		const globalSpeedBoost = globalSpeedBoosts({ activity: 'Fishing', multiplier: 1 });
-		const maxTripLength = (await user.calcMaxTripLength('Fishing')) / globalSpeedBoost.multiplier;
+		const globalSpeedBoost = speedCalculations({ activity: 'Fishing', multiplier: 1 });
+		const maxTripLength = await user.calcMaxTripLength('Fishing');
 		const hasWildyEliteDiary = user.hasDiary('wilderness.elite');
 		const sharkLureQuantity = (options.shark_lure ?? 0) as SharkLureQuantity;
 		if (sharkLureQuantity > 0 && spot.name !== 'Shark') {
@@ -128,13 +128,14 @@ export const fishCommand = defineCommand({
 			powerfish: Boolean(options.powerfish),
 			hasWildyEliteDiary,
 			sharkLureQuantity,
+			globalSpeedMultiplier: globalSpeedBoost.multiplier,
 			user
 		});
 
 		if (typeof result === 'string') {
 			return result;
 		}
-		const duration = result.duration * globalSpeedBoost.multiplier;
+		const duration = result.duration;
 		result.boosts.push(...globalSpeedBoost.messages);
 
 		if (result.featherPacksToOpen && result.featherPacksToOpen > 0) {

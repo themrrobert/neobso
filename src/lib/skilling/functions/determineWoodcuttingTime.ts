@@ -14,6 +14,7 @@ interface WoodcuttingTimeOptions {
 	forestry: boolean;
 	woodcuttingLvl: number;
 	maxTripLength: number;
+	actionSpeedMultiplier?: number;
 	rng: RNGProvider;
 }
 
@@ -26,6 +27,7 @@ export function determineWoodcuttingTime({
 	forestry,
 	woodcuttingLvl,
 	maxTripLength,
+	actionSpeedMultiplier = 1,
 	rng
 }: WoodcuttingTimeOptions): [number, number] {
 	let timeElapsed = 0;
@@ -50,13 +52,13 @@ export function determineWoodcuttingTime({
 	if (!powerchopping && user.hasEquippedOrInBank('Log basket')) {
 		maxTripLength += Time.Minute * 5;
 	}
-	let userMaxTripTicks = maxTripLength / (Time.Second * 0.6);
+	let userMaxTripTicks = maxTripLength / (Time.Second * 0.6 * actionSpeedMultiplier);
 
 	if (log.name === 'Redwood Logs') {
 		userMaxTripTicks *= 2;
 	}
 
-	if (log.name === 'Ivy') userMaxTripTicks += IVY_MAX_TRIP_LENGTH_BOOST / (Time.Second * 0.6);
+	if (log.name === 'Ivy') userMaxTripTicks += IVY_MAX_TRIP_LENGTH_BOOST / (Time.Second * 0.6 * actionSpeedMultiplier);
 
 	while (timeElapsed < userMaxTripTicks) {
 		// Keep rolling until log chopped
@@ -79,5 +81,5 @@ export function determineWoodcuttingTime({
 			break;
 		}
 	}
-	return [timeElapsed * 0.6 * Time.Second, newQuantity];
+	return [timeElapsed * 0.6 * Time.Second * actionSpeedMultiplier, newQuantity];
 }

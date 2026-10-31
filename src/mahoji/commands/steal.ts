@@ -7,7 +7,7 @@ import { Thieving } from '@/lib/skilling/skills/thieving/index.js';
 import { type Stealable, stealables } from '@/lib/skilling/skills/thieving/stealables.js';
 import type { PickpocketActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
-import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 import { calcLootXPPickpocketing } from '@/tasks/minions/pickpocketActivity.js';
 
 export const stealCommand = defineCommand({
@@ -109,7 +109,7 @@ export const stealCommand = defineCommand({
 			timeToTheft = reduceNumByPercent(timeToTheft, 50);
 			boosts.push('50% boost for Wilvus');
 		}
-		const globalSpeedBoost = globalSpeedBoosts({ activity: 'Pickpocket', messages: boosts, multiplier: 1 });
+		const globalSpeedBoost = speedCalculations({ activity: 'Pickpocket', messages: boosts, multiplier: 1 });
 		timeToTheft *= globalSpeedBoost.multiplier;
 		boosts.splice(0, boosts.length, ...globalSpeedBoost.messages);
 

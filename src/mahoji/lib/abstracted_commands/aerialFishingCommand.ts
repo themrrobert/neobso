@@ -2,7 +2,7 @@ import { Time } from '@oldschoolgg/toolkit';
 
 import type { ActivityTaskOptionsWithQuantity } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
-import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export async function aerialFishingCommand({
 	user,
@@ -19,7 +19,7 @@ export async function aerialFishingCommand({
 
 	const timePerFish = rng.randomVariation(2, 7.5) * Time.Second;
 	const quantity = Math.floor((await user.calcMaxTripLength('AerialFishing')) / timePerFish);
-	const duration = globalSpeedBoosts({ activity: 'AerialFishing', duration: timePerFish * quantity }).duration;
+	const duration = speedCalculations({ activity: 'AerialFishing', duration: timePerFish * quantity }).duration;
 
 	await ActivityManager.startTrip<ActivityTaskOptionsWithQuantity>({
 		userID: user.id,

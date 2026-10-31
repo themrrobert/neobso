@@ -4,7 +4,7 @@ import { clamp } from 'remeda';
 
 import type { AlchingActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
-import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 const unlimitedFireRuneProviders = resolveItems([
 	'Staff of fire',
@@ -78,7 +78,7 @@ export async function alchCommand(
 		consumedItems.add('Nature rune', Math.floor(consumedItems.amount('Nature rune') * 0.5));
 		duration /= speed;
 	}
-	duration = globalSpeedBoosts({ activity: 'Alching', duration }).duration;
+	duration = speedCalculations({ activity: 'Alching', duration }).duration;
 
 	if (!user.owns(consumedItems)) {
 		return `You don't have the required items, you need ${consumedItems}`;

@@ -16,6 +16,7 @@ interface MiningTimeOptions {
 	miningLvl: number;
 	passedDuration?: number;
 	hasKaramjaMedium: boolean;
+	actionSpeedMultiplier?: number;
 	rng: RNGProvider;
 }
 
@@ -33,6 +34,7 @@ export function determineMiningTime({
 	hasGlory,
 	maxTripLength,
 	hasKaramjaMedium,
+	actionSpeedMultiplier = 1,
 	rng
 }: MiningTimeOptions): [number, number] {
 	let { intercept } = ore;
@@ -61,7 +63,7 @@ export function determineMiningTime({
 		passedDuration = 0;
 	}
 
-	let userMaxTripTicks = (maxTripLength - passedDuration) / (Time.Second * 0.6);
+	let userMaxTripTicks = (maxTripLength - passedDuration) / (Time.Second * 0.6 * actionSpeedMultiplier);
 
 	if (ore.name === 'Daeyalt essence rock') {
 		if (!powermining) {
@@ -93,5 +95,5 @@ export function determineMiningTime({
 			break;
 		}
 	}
-	return [timeElapsed * 0.6 * Time.Second, newQuantity];
+	return [timeElapsed * 0.6 * Time.Second * actionSpeedMultiplier, newQuantity];
 }

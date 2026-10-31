@@ -6,7 +6,7 @@ import { Craftables } from '@/lib/skilling/skills/crafting/craftables/index.js';
 import Tanning from '@/lib/skilling/skills/crafting/craftables/tanning.js';
 import type { CraftingActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
-import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export const craftCommand = defineCommand({
 	name: 'craft',
@@ -112,7 +112,7 @@ export const craftCommand = defineCommand({
 				);
 			}
 		}
-		const globalSpeedBoost = globalSpeedBoosts({ activity: 'Crafting', messages: boosts, multiplier: 1 });
+		const globalSpeedBoost = speedCalculations({ activity: 'Crafting', messages: boosts, multiplier: 1 });
 		timeToCraftSingleItem *= globalSpeedBoost.multiplier;
 		boosts.splice(0, boosts.length, ...globalSpeedBoost.messages);
 

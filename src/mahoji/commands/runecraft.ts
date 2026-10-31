@@ -10,7 +10,7 @@ import type { RunecraftActivityTaskOptions } from '@/lib/types/minions.js';
 import { determineRunes } from '@/lib/util/determineRunes.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
 import { formatSkillRequirements } from '@/lib/util/smallUtils.js';
-import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 import { ouraniaAltarStartCommand } from '@/mahoji/lib/abstracted_commands/ouraniaAltarCommand.js';
 import { tiaraRunecraftCommand } from '@/mahoji/lib/abstracted_commands/tiaraRunecraftCommand.js';
 import { calcMaxRCQuantity } from '@/mahoji/mahojiSettings.js';
@@ -137,7 +137,7 @@ export const runecraftCommand = defineCommand({
 
 		let { tripLength } = runeObj;
 		const boosts: string[] = [];
-		const globalSpeedBoost = globalSpeedBoosts({ activity: 'Runecraft', messages: boosts, multiplier: 1 });
+		const globalSpeedBoost = speedCalculations({ activity: 'Runecraft', messages: boosts, multiplier: 1 });
 		boosts.splice(0, boosts.length, ...globalSpeedBoost.messages);
 		if (user.hasGracefulEquipped()) {
 			tripLength -= tripLength * 0.1;
@@ -185,7 +185,8 @@ export const runecraftCommand = defineCommand({
 			boosts.push('3% for Runecraft cape');
 		}
 
-		const maxTripLength = (await user.calcMaxTripLength('Runecraft')) / globalSpeedBoost.multiplier;
+		tripLength *= globalSpeedBoost.multiplier;
+		const maxTripLength = await user.calcMaxTripLength('Runecraft');
 
 		if (user.hasEquippedOrInBank(['Abyssal amulet'])) {
 			const abyssalAmuletBoost = inventionBoosts.abyssalAmulet.boosts.find(b =>
@@ -347,7 +348,6 @@ export const runecraftCommand = defineCommand({
 					numberOfInventories / (4 * teleportReduction)
 				)}x Ring of dueling(8).`;
 			}
-			duration *= globalSpeedBoost.multiplier;
 			if (usestams) {
 				removeTalismanAndOrRunes.add('Stamina potion(4)', Math.max(Math.ceil(duration / (Time.Minute * 8)), 1));
 				if (!user.owns(removeTalismanAndOrRunes)) {
@@ -359,8 +359,6 @@ export const runecraftCommand = defineCommand({
 			}
 			totalCost.add(removeTalismanAndOrRunes);
 		}
-		if (!runeObj.inputTalisman) duration *= globalSpeedBoost.multiplier;
-
 		if (daeyalt_essence) {
 			totalCost.add('Daeyalt essence', essenceRequired);
 		} else {

@@ -3,7 +3,7 @@ import { Bank } from 'oldschooljs';
 
 import TitheFarmBuyables from '@/lib/data/buyables/titheFarmBuyables.js';
 import type { TitheFarmActivityTaskOptions } from '@/lib/types/minions.js';
-import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 async function determineDuration(user: MUser): Promise<[number, string[]]> {
 	let baseTime = Time.Second * 1500;
@@ -40,7 +40,7 @@ export async function titheFarmCommand(user: MUser, channelId: string) {
 	}
 
 	let [duration, boostStr] = await determineDuration(user);
-	const globalSpeedBoost = globalSpeedBoosts({ activity: 'TitheFarm', duration, messages: boostStr });
+	const globalSpeedBoost = speedCalculations({ activity: 'TitheFarm', duration, messages: boostStr });
 	duration = globalSpeedBoost.duration;
 	boostStr = globalSpeedBoost.messages;
 

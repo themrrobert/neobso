@@ -8,7 +8,7 @@ import { determineWoodcuttingTime } from '@/lib/skilling/functions/determineWood
 import Woodcutting from '@/lib/skilling/skills/woodcutting/woodcutting.js';
 import type { WoodcuttingActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
-import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 const axes = [
 	{
@@ -190,9 +190,9 @@ export const chopCommand = defineCommand({
 		// Default bronze axe, last in the array
 		let axeMultiplier = 1;
 		boosts.push(`**${axeMultiplier}x** success multiplier for Bronze axe`);
-		const globalSpeedBoost = globalSpeedBoosts({ activity: 'Woodcutting', messages: boosts, multiplier: 1 });
+		const globalSpeedBoost = speedCalculations({ activity: 'Woodcutting', messages: boosts, multiplier: 1 });
 		boosts.splice(0, boosts.length, ...globalSpeedBoost.messages);
-		const maxTripLength = (await user.calcMaxTripLength('Woodcutting')) / globalSpeedBoost.multiplier;
+		const maxTripLength = await user.calcMaxTripLength('Woodcutting');
 
 		if (user.hasEquippedOrInBank(['Drygore axe'])) {
 			const [predeterminedTotalTime] = determineWoodcuttingTime({
@@ -204,6 +204,7 @@ export const chopCommand = defineCommand({
 				forestry: forestry_events,
 				woodcuttingLvl: wcLvl,
 				maxTripLength,
+				actionSpeedMultiplier: globalSpeedBoost.multiplier,
 				rng
 			});
 			const boostRes = await inventionItemBoost({
@@ -272,10 +273,11 @@ export const chopCommand = defineCommand({
 			forestry: forestry_events,
 			woodcuttingLvl: wcLvl,
 			maxTripLength,
+			actionSpeedMultiplier: globalSpeedBoost.multiplier,
 			rng
 		});
 
-		const duration = timeToChop * globalSpeedBoost.multiplier;
+		const duration = timeToChop;
 
 		const fakeDurationMin = quantity ? rng.randomVariation(reduceNumByPercent(duration, 25), 20) : duration;
 		const fakeDurationMax = quantity ? rng.randomVariation(increaseNumByPercent(duration, 25), 20) : duration;

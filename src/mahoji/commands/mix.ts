@@ -6,7 +6,7 @@ import { Bank } from 'oldschooljs';
 import Herblore from '@/lib/skilling/skills/herblore/herblore.js';
 import type { HerbloreActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
-import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export const mixCommand = defineCommand({
 	name: 'mix',
@@ -92,7 +92,7 @@ export const mixCommand = defineCommand({
 			} gp for each item so they don't have to go.`;
 		}
 
-		const globalSpeedBoost = globalSpeedBoosts({ activity: 'Herblore', messages: boosts, multiplier: 1 });
+		const globalSpeedBoost = speedCalculations({ activity: 'Herblore', messages: boosts, multiplier: 1 });
 		boosts.splice(0, boosts.length, ...globalSpeedBoost.messages);
 		if (!isInstantTrip) timeToMixSingleItem *= globalSpeedBoost.multiplier;
 		const maxTripLength = await user.calcMaxTripLength('Herblore');

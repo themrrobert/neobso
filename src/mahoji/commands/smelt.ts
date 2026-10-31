@@ -7,7 +7,7 @@ import Smithing from '@/lib/skilling/skills/smithing/index.js';
 import type { SmeltingActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
 import { formatSkillRequirements } from '@/lib/util/smallUtils.js';
-import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export const smeltingCommand = defineCommand({
 	name: 'smelt',
@@ -119,7 +119,7 @@ export const smeltingCommand = defineCommand({
 				timeToSmithSingleBar /= 2;
 			}
 		}
-		const globalSpeedBoost = globalSpeedBoosts({ activity: 'Smelting', messages: boosts, multiplier: 1 });
+		const globalSpeedBoost = speedCalculations({ activity: 'Smelting', messages: boosts, multiplier: 1 });
 		timeToSmithSingleBar *= globalSpeedBoost.multiplier;
 		boosts.splice(0, boosts.length, ...globalSpeedBoost.messages);
 

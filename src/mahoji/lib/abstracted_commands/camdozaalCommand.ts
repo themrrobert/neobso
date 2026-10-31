@@ -7,6 +7,7 @@ import { Fishing } from '@/lib/skilling/skills/fishing/fishing.js';
 import Mining from '@/lib/skilling/skills/mining.js';
 import type { ActivityTaskOptionsWithQuantity } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 async function miningCommand(rng: RNGProvider, user: MUser, channelId: string, quantity: number | undefined) {
 	let miningLevel = user.skillsAsLevels.mining;
@@ -15,6 +16,8 @@ async function miningCommand(rng: RNGProvider, user: MUser, channelId: string, q
 	}
 
 	const boosts = [];
+	const speedResult = speedCalculations({ activity: 'CamdozaalMining', multiplier: 1 });
+	boosts.push(...speedResult.messages);
 	// Checks if user own Celestial ring or Celestial signet
 	if (user.hasEquippedOrInBank(['Celestial ring (uncharged)'])) {
 		boosts.push('+4 invisible Mining lvls for Celestial ring');
@@ -56,6 +59,7 @@ async function miningCommand(rng: RNGProvider, user: MUser, channelId: string, q
 		hasGlory: user.hasEquipped('Amulet of glory'),
 		maxTripLength: await user.calcMaxTripLength('CamdozaalMining'),
 		hasKaramjaMedium: false,
+		actionSpeedMultiplier: speedResult.multiplier,
 		rng
 	});
 
@@ -92,7 +96,8 @@ async function smithingCommand(user: MUser, channelId: string, quantity: number 
 	}
 
 	const maxTripLength = await user.calcMaxTripLength('CamdozaalSmithing');
-	const timePerSmith = 3.5 * Time.Second;
+	const speedResult = speedCalculations({ activity: 'CamdozaalSmithing', multiplier: 1 });
+	const timePerSmith = 3.5 * Time.Second * speedResult.multiplier;
 	if (!quantity) {
 		quantity = Math.floor(maxTripLength / timePerSmith);
 	}
@@ -136,7 +141,8 @@ async function fishingCommand(user: MUser, channelId: string, quantity: number |
 
 	const maxTripLength = await user.calcMaxTripLength('CamdozaalFishing');
 	const camdozaalfish = Fishing.camdozaalFishes.find(_fish => _fish.name === 'Raw guppy')!;
-	const timePerFish = camdozaalfish.timePerFish! * Time.Second;
+	const speedResult = speedCalculations({ activity: 'CamdozaalFishing', multiplier: 1 });
+	const timePerFish = camdozaalfish.timePerFish! * Time.Second * speedResult.multiplier;
 
 	if (!quantity) {
 		quantity = Math.floor(maxTripLength / timePerFish);

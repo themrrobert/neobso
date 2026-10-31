@@ -5,6 +5,7 @@ import { getPOHObject } from '@/lib/poh/index.js';
 import type { GnomeRestaurantActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
 import { getPOH } from '@/mahoji/lib/abstracted_commands/pohCommand.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export async function gnomeRestaurantCommand(rng: RNGProvider, user: MUser, channelId: string) {
 	let deliveryLength = Time.Minute * 7;
@@ -82,6 +83,9 @@ export async function gnomeRestaurantCommand(rng: RNGProvider, user: MUser, chan
 			break;
 		}
 	}
+	const speedResult = speedCalculations({ activity: 'GnomeRestaurant', multiplier: 1 });
+	deliveryLength *= speedResult.multiplier;
+	boosts.push(...speedResult.messages);
 
 	const quantity = Math.floor((await user.calcMaxTripLength('GnomeRestaurant')) / deliveryLength);
 	const duration = rng.randomVariation(deliveryLength * quantity, 5);

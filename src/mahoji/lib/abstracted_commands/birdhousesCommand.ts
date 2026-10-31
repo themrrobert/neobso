@@ -7,7 +7,7 @@ import { Bank, Items } from 'oldschooljs';
 import birdhouses, { birdhouseSeeds } from '@/lib/skilling/skills/hunter/birdHouseTrapping.js';
 import type { BirdhouseActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
-import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export async function birdhouseCheckCommand(user: MUser) {
 	const details = user.fetchBirdhouseData();
@@ -118,7 +118,7 @@ export async function birdhouseHarvestCommand(user: MUser, channelId: string, in
 		);
 	}
 
-	const globalSpeedBoost = globalSpeedBoosts({ activity: 'Birdhouse', duration, messages: boostStr });
+	const globalSpeedBoost = speedCalculations({ activity: 'Birdhouse', duration, messages: boostStr });
 	duration = globalSpeedBoost.duration;
 	boostStr.splice(0, boostStr.length, ...globalSpeedBoost.messages);
 

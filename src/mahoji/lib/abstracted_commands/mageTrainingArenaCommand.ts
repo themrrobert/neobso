@@ -4,6 +4,7 @@ import { Bank, Items, LootTable } from 'oldschooljs';
 import type { MinigameActivityTaskOptionsWithNoChanges } from '@/lib/types/minions.js';
 import { determineRunes } from '@/lib/util/determineRunes.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 import { pizazzPointsPerHour } from '@/tasks/minions/minigames/mageTrainingArenaActivity.js';
 
 const RuneTable = new LootTable()
@@ -113,7 +114,8 @@ Hint: Magic Training Arena is combined into 1 room, and 1 set of points - reward
 export async function mageTrainingArenaStartCommand(user: MUser, channelId: string): CommandResponse {
 	if (await user.minionIsBusy()) return `${user.minionName} is currently busy.`;
 
-	const roomDuration = Time.Minute * 14;
+	const speedResult = speedCalculations({ activity: 'MageTrainingArena', multiplier: 1 });
+	const roomDuration = Time.Minute * 14 * speedResult.multiplier;
 	const quantity = Math.floor((await user.calcMaxTripLength('MageTrainingArena')) / roomDuration);
 	const duration = quantity * roomDuration;
 
@@ -138,5 +140,5 @@ export async function mageTrainingArenaStartCommand(user: MUser, channelId: stri
 
 	return `${
 		user.minionName
-	} is now doing ${quantity} Magic Training Arena rooms. The trip will return in about around ${formatTripDuration(user, duration)}. Removed ${cost} from your bank.`;
+	} is now doing ${quantity} Magic Training Arena rooms. The trip will return in about around ${formatTripDuration(user, duration)}. Removed ${cost} from your bank.\n\n**Boosts:** ${speedResult.messages.join(', ')}`;
 }

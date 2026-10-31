@@ -4,6 +4,7 @@ import { Bank, Items } from 'oldschooljs';
 import { Plank } from '@/lib/skilling/skills/construction/constructables.js';
 import type { MahoganyHomesActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 interface IContract {
 	name: string;
@@ -61,12 +62,13 @@ function calcTrip(
 	tier: IContract,
 	kc: number,
 	maxLen: number,
-	hasSack: boolean
+	hasSack: boolean,
+	actionSpeedMultiplier = 1
 ): [number, Bank, number, number, number] {
 	const percentSkill = Math.min(100, calcWhatPercent(kc, 300));
 	const qtyPerHour = 31 + Math.ceil(calcPercentOfNum(percentSkill, 5)) + (hasSack ? 6 : 0);
 	const qtyPerMaxLen = (qtyPerHour / Time.Hour) * maxLen;
-	const lenPerQty = maxLen / qtyPerMaxLen;
+	const lenPerQty = (maxLen / qtyPerMaxLen) * actionSpeedMultiplier;
 
 	const qty = Math.floor(maxLen / lenPerQty);
 	const itemsNeeded = new Bank();
@@ -168,12 +170,14 @@ export async function mahoganyHomesBuildCommand(
 	}
 
 	const hasSack = user.hasEquippedOrInBank('Plank sack');
+	const speedResult = speedCalculations({ activity: 'MahoganyHomes', multiplier: 1 });
 	const [quantity, itemsNeeded, xp, duration, points] = calcTrip(
 		rng,
 		tierData,
 		kc,
 		await user.calcMaxTripLength('MahoganyHomes'),
-		hasSack
+		hasSack,
+		speedResult.multiplier
 	);
 
 	if (!user.owns(itemsNeeded)) {
@@ -202,6 +206,7 @@ export async function mahoganyHomesBuildCommand(
 	if (hasSack) {
 		str += "\nYou're getting more XP/Hr because of your Plank sack!";
 	}
+	str += `\n**Boosts:** ${speedResult.messages.join(', ')}.`;
 
 	return str;
 }

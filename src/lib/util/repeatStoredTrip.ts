@@ -487,7 +487,7 @@ const tripHandlers: {
 		commandName: 'hunt',
 		args: (data: HunterActivityTaskOptions) => ({
 			name: Hunter.Creatures.find(i => i.id === data.creatureID)?.name ?? data.creatureID.toString(),
-			quantity: data.quantity,
+			quantity: data.iQty,
 			hunter_potion: data.usingHuntPotion,
 			stamina_potions: data.usingStaminaPotion
 		})

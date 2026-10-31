@@ -4,6 +4,7 @@ import { type Item, Items, itemID } from 'oldschooljs';
 import type { Skills } from '@/lib/types/index.js';
 import type { PuroPuroActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 import { hasSkillReqs } from '@/lib/util/smallUtils.js';
 
 interface PuroImpling {
@@ -52,7 +53,8 @@ export async function puroPuroStartCommand(
 	impling: string | undefined,
 	darkLure: boolean | undefined
 ) {
-	const timePerGame = Time.Minute * 10;
+	const speedResult = speedCalculations({ activity: 'PuroPuro', multiplier: 1 });
+	const timePerGame = Time.Minute * 10 * speedResult.multiplier;
 	const maxTripLength = await user.calcMaxTripLength('PuroPuro');
 	const quantity = Math.floor(maxTripLength / timePerGame);
 	const duration = quantity * timePerGame;
@@ -107,6 +109,7 @@ export async function puroPuroStartCommand(
 
 	if (!user.hasGracefulEquipped() && impToHunt.name !== 'Dragon Implings')
 		str += '\n20% less implings due to having no Graceful equipped.';
+	str += `\n**Boosts:** ${speedResult.messages.join(', ')}.`;
 
 	if (!impToHunt.spell) {
 		str += `\n**Note:** You can't use Dark Lure when hunting ${impToHunt.name} as you are camping their spawn.`;

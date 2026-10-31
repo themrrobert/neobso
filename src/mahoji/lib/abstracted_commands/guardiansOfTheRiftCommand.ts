@@ -7,6 +7,7 @@ import Runecraft from '@/lib/skilling/skills/runecraft.js';
 import type { GuardiansOfTheRiftActivityTaskOptions } from '@/lib/types/minions.js';
 import { determineRunes } from '@/lib/util/determineRunes.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export async function guardiansOfTheRiftStartCommand(
 	rng: RNGProvider,
@@ -19,7 +20,8 @@ export async function guardiansOfTheRiftStartCommand(
 		return 'You need 27 Runecraft to access the Temple of the Eye.';
 	}
 
-	const timePerGame = Time.Minute * 10;
+	const speedResult = speedCalculations({ activity: 'GuardiansOfTheRift', multiplier: 1 });
+	const timePerGame = Time.Minute * 10 * speedResult.multiplier;
 	const maxTripLength = await user.calcMaxTripLength('GuardiansOfTheRift');
 	const quantity = Math.floor(maxTripLength / timePerGame);
 	const duration = quantity * timePerGame;
@@ -41,6 +43,7 @@ export async function guardiansOfTheRiftStartCommand(
 		if (bank.has(pouch.id) && pouch.id === itemID('Colossal pouch')) break;
 	}
 	const boosts = [];
+	boosts.push(...speedResult.messages);
 	// Default bronze pickaxe, last in the array
 	let currentPickaxe = pickaxes[pickaxes.length - 1];
 	boosts.push(

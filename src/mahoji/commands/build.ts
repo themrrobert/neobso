@@ -7,7 +7,7 @@ import Constructables from '@/lib/skilling/skills/construction/constructables.js
 import type { Skills } from '@/lib/types/index.js';
 import type { ConstructionActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
-import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 const ds2Requirements: Skills = {
 	magic: 75,
@@ -122,7 +122,7 @@ export const buildCommand = defineCommand({
 				);
 			}
 		}
-		const globalSpeedBoost = globalSpeedBoosts({ activity: 'Construction', messages: boosts, multiplier: 1 });
+		const globalSpeedBoost = speedCalculations({ activity: 'Construction', messages: boosts, multiplier: 1 });
 		timeToBuildSingleObject *= globalSpeedBoost.multiplier;
 		boosts.splice(0, boosts.length, ...globalSpeedBoost.messages);
 		const maxForTime = Math.floor(maxTripLength / timeToBuildSingleObject);

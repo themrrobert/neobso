@@ -13,6 +13,7 @@ import TippedDragonBolts from '@/lib/skilling/skills/fletching/fletchables/tippe
 import type { Fletchable } from '@/lib/skilling/types.js';
 import type { SepulchreActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export async function sepulchreCommand(user: MUser, channelId: string, fletching?: number) {
 	const skills = user.skillsAsLevels;
@@ -54,6 +55,9 @@ export async function sepulchreCommand(user: MUser, channelId: string, fletching
 			lapLength = reduceNumByPercent(lapLength, percent);
 		}
 	}
+	const speedResult = speedCalculations({ activity: 'Sepulchre', multiplier: 1 });
+	lapLength *= speedResult.multiplier;
+	boosts.push(...speedResult.messages);
 
 	const maxLaps = Math.floor((await user.calcMaxTripLength('Sepulchre')) / lapLength);
 	const tripLength = maxLaps * lapLength;

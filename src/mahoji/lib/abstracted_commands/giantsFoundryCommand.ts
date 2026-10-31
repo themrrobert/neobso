@@ -6,6 +6,7 @@ import { trackLoot } from '@/lib/lootTrack.js';
 import Smithing from '@/lib/skilling/skills/smithing/index.js';
 import type { GiantsFoundryActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export const giantsFoundryAlloys = [
 	{
@@ -199,6 +200,9 @@ export async function giantsFoundryStartCommand(
 		timePerSection = reduceNumByPercent(timePerSection, 15);
 		boosts.push('15% for Smithing mastery');
 	}
+	const speedResult = speedCalculations({ activity: 'GiantsFoundry', multiplier: 1 });
+	timePerSection *= speedResult.multiplier;
+	boosts.push(...speedResult.messages);
 
 	const maxTripLength = await user.calcMaxTripLength('GiantsFoundry');
 	if (!quantity) {

@@ -4,6 +4,7 @@ import { Bank } from 'oldschooljs';
 import type { ActivityTaskOptionsWithQuantity } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
 import { formatSkillRequirements, hasSkillReqs } from '@/lib/util/smallUtils.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 const skillReqs = {
 	prayer: 70,
@@ -106,7 +107,9 @@ export async function volcanicMineCommand(user: MUser, channelId: string, gameQu
 			.filter(f => f)
 			.join(', ')}`;
 	}
-	const maxGamesUserCanDo = Math.floor((await user.calcMaxTripLength('VolcanicMine')) / VolcanicMineGameTime);
+	const speedResult = speedCalculations({ activity: 'VolcanicMine', multiplier: 1 });
+	const gameDuration = VolcanicMineGameTime * speedResult.multiplier;
+	const maxGamesUserCanDo = Math.floor((await user.calcMaxTripLength('VolcanicMine')) / gameDuration);
 	if (!gameQuantity || gameQuantity > maxGamesUserCanDo) gameQuantity = maxGamesUserCanDo;
 	const userMiningLevel = skills.mining;
 	const userPrayerLevel = skills.prayer;
@@ -114,6 +117,7 @@ export async function volcanicMineCommand(user: MUser, channelId: string, gameQu
 	const { gear } = user;
 	const userSkillingGear = gear.skilling;
 	const boosts: string[] = [];
+	boosts.push(...speedResult.messages);
 
 	const suppliesUsage = new Bank()
 		.add('Saradomin brew (4)', userHitpointsLevel < 80 ? 3 : 2)
@@ -164,7 +168,7 @@ export async function volcanicMineCommand(user: MUser, channelId: string, gameQu
 		boosts.push('20% more Mining XP for having Doug helping you!');
 	}
 
-	const duration = VolcanicMineGameTime * gameQuantity;
+	const duration = gameDuration * gameQuantity;
 
 	const str = `${
 		user.minionName

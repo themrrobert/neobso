@@ -5,7 +5,7 @@ import { Enchantables } from '@/lib/skilling/skills/magic/enchantables.js';
 import type { EnchantingActivityTaskOptions } from '@/lib/types/minions.js';
 import { determineRunes } from '@/lib/util/determineRunes.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
-import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export async function enchantCommand(user: MUser, channelId: string, name: string, quantity?: number) {
 	const enchantable = Enchantables.find(
@@ -36,7 +36,7 @@ export async function enchantCommand(user: MUser, channelId: string, name: strin
 		if (max < quantity && max !== 0) quantity = max;
 	}
 
-	const duration = globalSpeedBoosts({ activity: 'Enchanting', duration: quantity * timeToEnchantTen }).duration;
+	const duration = speedCalculations({ activity: 'Enchanting', duration: quantity * timeToEnchantTen }).duration;
 
 	if (duration > maxTripLength) {
 		return `${user.minionName} can't go on trips longer than ${formatDuration(

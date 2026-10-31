@@ -15,7 +15,7 @@ import type { HunterActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
 import { generateDailyPeakIntervals, type Peak } from '@/lib/util/peaks.js';
 import { hasSkillReqs } from '@/lib/util/smallUtils.js';
-import { globalSpeedBoosts } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export function calculateHunterInput({
 	skillsAsLevels,
@@ -34,6 +34,7 @@ export function calculateHunterInput({
 	quickTrapMessages,
 	isUsingWebshooter,
 	webshooterMessages,
+	globalSpeedMultiplier,
 	user
 }: {
 	creature: Creature;
@@ -52,6 +53,7 @@ export function calculateHunterInput({
 	quickTrapMessages: string | undefined;
 	isUsingWebshooter: boolean;
 	webshooterMessages: string | undefined;
+	globalSpeedMultiplier: number;
 	user: MUser;
 }) {
 	const messages: string[] = [];
@@ -151,10 +153,10 @@ export function calculateHunterInput({
 		}
 	}
 
-	let timePerCatch = (catchTime * Time.Second) / traps;
 	if (creature.id === ECreature.HERBIBOAR || creature.id === ECreature.RAZOR_BACKED_KEBBIT) {
 		if (shouldUseStaminaPotions) catchTime *= 0.8;
 	}
+	let timePerCatch = crystalImpling ? Time.Minute : (catchTime * Time.Second) / traps;
 
 	if (creature.huntTechnique === HunterTechniqueEnum.BoxTrapping && isUsingQuickTrap) {
 		const boostedActionTime = reduceNumByPercent(timePerCatch, inventionBoosts.quickTrap.boxTrapBoostPercent);
@@ -172,21 +174,15 @@ export function calculateHunterInput({
 		timePerCatch = boostedActionTime;
 	}
 
+	timePerCatch *= globalSpeedMultiplier;
+
 	const maxQuantity = Math.floor(maxTripLength / timePerCatch);
 	let quantity = quantityInput;
 	if (!quantity) {
-		if (crystalImpling) {
-			quantity = Math.floor(maxTripLength / Time.Minute);
-		} else {
-			quantity = maxQuantity;
-		}
+		quantity = maxQuantity;
 	}
 
 	let duration = Math.floor(quantity * timePerCatch);
-
-	if (crystalImpling) {
-		duration = Math.floor(quantity * Time.Minute);
-	}
 
 	if (duration > maxTripLength) {
 		return `You can't go on trips longer than ${formatDuration(
@@ -201,7 +197,7 @@ export function calculateHunterInput({
 			if (bank.amount(item.id) < qty * quantity) {
 				if (bank.amount(item.id) > qty) {
 					quantity = Math.floor(bank.amount(item.id) / qty);
-					duration = Math.floor(((quantity * catchTime) / traps) * Time.Second);
+					duration = Math.floor(quantity * timePerCatch);
 				} else {
 					return `You don't have enough ${item.name}s.`;
 				}
@@ -332,7 +328,7 @@ export const huntCommand = defineCommand({
 
 		const crystalImpling = creature.name === 'Crystal impling';
 
-		const globalSpeedBoost = globalSpeedBoosts({ activity: 'Hunter', multiplier: 1 });
+		const globalSpeedBoost = speedCalculations({ activity: 'Hunter', multiplier: 1 });
 		const maxTripLength = await user.calcMaxTripLength('Hunter');
 		const elligibleForQuickTrap =
 			creature.huntTechnique === HunterTechniqueEnum.BoxTrapping && user.owns('Quick trap');
@@ -355,6 +351,7 @@ export const huntCommand = defineCommand({
 			quickTrapMessages: undefined,
 			isUsingWebshooter: elligibleForWebshooter,
 			webshooterMessages: undefined,
+			globalSpeedMultiplier: globalSpeedBoost.multiplier,
 			user
 		};
 
@@ -396,7 +393,6 @@ export const huntCommand = defineCommand({
 
 		const { wildyPeak, messages, totalCost, quantity, duration, isUsingHunterPotion, shouldUseStaminaPotions } =
 			result;
-		const boostedDuration = duration * globalSpeedBoost.multiplier;
 		messages.push(...globalSpeedBoost.messages);
 
 		await user.removeItemsFromBank(totalCost);
@@ -419,7 +415,8 @@ export const huntCommand = defineCommand({
 			userID: user.id,
 			channelId,
 			quantity,
-			duration: boostedDuration,
+			iQty: options.quantity,
+			duration,
 			usingHuntPotion: isUsingHunterPotion ? true : undefined,
 			usingStaminaPotion: shouldUseStaminaPotions ? true : undefined,
 			wildyPeak: wildyPeak ? wildyPeak : undefined,
@@ -428,7 +425,7 @@ export const huntCommand = defineCommand({
 
 		let response = `${user.minionName} is now ${crystalImpling ? 'hunting' : `${creature.huntTechnique}`}${
 			crystalImpling ? ' ' : ` ${quantity}x `
-		}${creature.name}, it'll take around ${formatTripDuration(user, boostedDuration)} to finish.`;
+		}${creature.name}, it'll take around ${formatTripDuration(user, duration)} to finish.`;
 
 		if (messages.length > 0) {
 			response += `\n\n${messages.join(', ')}.`;

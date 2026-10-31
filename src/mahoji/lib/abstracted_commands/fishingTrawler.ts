@@ -2,6 +2,7 @@ import { calcWhatPercent, reduceNumByPercent, Time } from '@oldschoolgg/toolkit'
 
 import type { MinigameActivityTaskOptionsWithNoChanges } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export async function fishingTrawlerCommand(user: MUser, channelId: string) {
 	if (user.skillLevel('fishing') < 15) {
@@ -14,6 +15,8 @@ export async function fishingTrawlerCommand(user: MUser, channelId: string) {
 	// 10% boost for 50 trips done
 	const boost = Math.min(100, calcWhatPercent(tripsDone, 50)) / 10;
 	tripLength = reduceNumByPercent(tripLength, boost);
+	const speedResult = speedCalculations({ activity: 'FishingTrawler', multiplier: 1 });
+	tripLength *= speedResult.multiplier;
 
 	const quantity = Math.floor((await user.calcMaxTripLength('FishingTrawler')) / tripLength);
 	const duration = quantity * tripLength;
@@ -27,5 +30,5 @@ export async function fishingTrawlerCommand(user: MUser, channelId: string) {
 		duration
 	});
 
-	return `${user.minionName} is now doing ${quantity}x Fishing Trawler trips, it will take around ${formatTripDuration(user, duration)} to finish.\n\n**Boosts:** ${boost}% boost for experience`;
+	return `${user.minionName} is now doing ${quantity}x Fishing Trawler trips, it will take around ${formatTripDuration(user, duration)} to finish.\n\n**Boosts:** ${boost}% boost for experience, ${speedResult.messages.join(', ')}`;
 }
