@@ -1,6 +1,9 @@
 import { Client } from 'pg';
 
-const client = new Client();
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) throw new Error('DATABASE_URL is required');
+
+const client = new Client({ connectionString: databaseUrl.split('?')[0] });
 
 try {
 	await client.connect();
@@ -10,7 +13,7 @@ try {
 		type: string;
 	}>(`
 		SELECT
-			COALESCE(u."RSN", u.id) AS username,
+			COALESCE(u.username, u.id) AS username,
 			FLOOR(EXTRACT(EPOCH FROM (a.finish_date - NOW())))::int AS remaining_seconds,
 			a.type::text AS type
 		FROM activity a
