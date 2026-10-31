@@ -116,6 +116,7 @@ export const stealCommand = defineCommand({
 		const maxTripLength =
 			(stealable.name === 'Wealthy Citizen' ? 2 : 1) * (await user.calcMaxTripLength('Pickpocket'));
 
+		const inputQuantity = options.quantity;
 		let { quantity } = options;
 		if (!quantity) quantity = Math.floor(maxTripLength / timeToTheft);
 
@@ -194,6 +195,7 @@ export const stealCommand = defineCommand({
 			userID: user.id,
 			channelId,
 			quantity,
+			iQty: inputQuantity,
 			duration,
 			type: 'Pickpocket',
 			damageTaken,

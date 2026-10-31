@@ -33,6 +33,7 @@ import {
 	FishingStoredTripError
 } from '@/lib/skilling/skills/fishing/fishingRework.js';
 import Hunter from '@/lib/skilling/skills/hunter/hunter.js';
+import { stealables } from '@/lib/skilling/skills/thieving/stealables.js';
 import type {
 	ActivityTaskData,
 	ActivityTaskOptionsWithQuantity,
@@ -598,7 +599,10 @@ const tripHandlers: {
 	},
 	[activity_type_enum.Pickpocket]: {
 		commandName: 'steal',
-		args: (data: PickpocketActivityTaskOptions) => ({ name: data.monsterID, quantity: data.quantity })
+		args: (data: PickpocketActivityTaskOptions) => ({
+			name: stealables.find(stealable => stealable.id === data.monsterID)?.name ?? data.monsterID.toString(),
+			quantity: data.iQty
+		})
 	},
 	[activity_type_enum.Plunder]: {
 		commandName: 'minigames',
@@ -823,7 +827,7 @@ const tripHandlers: {
 	},
 	[activity_type_enum.ClueCompletion]: {
 		commandName: 'clue',
-		args: (data: ClueActivityTaskOptions) => ({ tier: data.ci, quantity: data.q })
+		args: (data: ClueActivityTaskOptions) => ({ tier: data.ci, quantity: data.iQty })
 	},
 	[activity_type_enum.FistOfGuthix]: {
 		commandName: 'bsominigames',

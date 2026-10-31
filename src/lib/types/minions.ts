@@ -273,6 +273,7 @@ export interface PickpocketActivityTaskOptions extends ActivityTaskOptions {
 	type: 'Pickpocket';
 	monsterID: number;
 	quantity: number;
+	iQty?: number;
 	xpReceived: number;
 	successfulQuantity: number;
 	damageTaken: number;

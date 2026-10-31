@@ -299,6 +299,7 @@ export const mineCommand = defineCommand({
 			userID: user.id,
 			channelId,
 			quantity: newQuantity,
+			iQty: quantity,
 			powermine: isPowermining,
 			duration,
 			fakeDurationMax,

@@ -95,6 +95,7 @@ async function smithingCommand(user: MUser, channelId: string, quantity: number 
 		return 'You need at least level 14 Smithing to smith in the Ruins of Camdozaal.';
 	}
 
+	const inputQuantity = quantity;
 	const maxTripLength = await user.calcMaxTripLength('CamdozaalSmithing');
 	const speedResult = speedCalculations({ activity: 'CamdozaalSmithing', multiplier: 1 });
 	const timePerSmith = 3.5 * Time.Second * speedResult.multiplier;
@@ -126,6 +127,7 @@ async function smithingCommand(user: MUser, channelId: string, quantity: number 
 		userID: user.id,
 		channelId,
 		quantity,
+		iQty: inputQuantity,
 		duration,
 		type: 'CamdozaalSmithing'
 	});
