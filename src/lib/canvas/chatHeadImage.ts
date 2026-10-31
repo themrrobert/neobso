@@ -21,6 +21,9 @@ export type HeadKey =
 	| 'marimbo'
 	| 'spookling'
 	| 'magnaboy'
+	| 'polterpup'
+	| 'agatha'
+	| 'unknownVampire'
 	| 'wurMuTheMonkey';
 
 const basePath = './src/lib/resources/images';
@@ -46,6 +49,9 @@ const chatHeadPaths: Record<HeadKey, string> = {
 	marimbo: 'marimbo.png',
 	spookling: 'spookling.png',
 	magnaboy: 'magnaboy.png',
+	polterpup: 'polterpup.png',
+	agatha: 'agatha.png',
+	unknownVampire: 'unknownVampire.png',
 	wurMuTheMonkey: 'monkeychild.png'
 };
 
@@ -69,6 +75,9 @@ const names: Record<HeadKey, string> = {
 	marimbo: 'Marimbo',
 	spookling: 'Spookling',
 	magnaboy: 'Magnaboy',
+	polterpup: 'Polterpup',
+	agatha: 'Agatha the Witch',
+	unknownVampire: 'Unknown',
 	wurMuTheMonkey: 'Wur Mu the Monkey'
 };
 

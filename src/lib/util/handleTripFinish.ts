@@ -1,5 +1,6 @@
 import { tearsOfGuthixIronmanReqs, tearsOfGuthixSkillReqs } from '@/lib/bso/commands/tearsOfGuthixCommand.js';
 import { handleCrateSpawns } from '@/lib/bso/handleCrateSpawns.js';
+import { handleHalloween2026TripFinish } from '@/lib/bso/halloween2026.js';
 import { gods } from '@/lib/bso/minigames/divineDominion.js';
 import { mysteriousStepData } from '@/lib/bso/mysteryTrail.js';
 import { MysteryBoxes } from '@/lib/bso/openables/tables.js';
@@ -52,6 +53,7 @@ const activitiesToTrackAsPVMGPSource: activity_type_enum[] = [
 ];
 
 interface TripFinishEffectOptions {
+	channelId: string;
 	data: ActivityTaskData;
 	user: MUser;
 	loot: Bank | null;
@@ -115,6 +117,12 @@ const tripFinishEffects: TripFinishEffect[] = [
 		name: 'Random Events',
 		fn: async ({ data, messages, user, rng }) => {
 			return triggerRandomEvent(user, data.type, data.duration, messages, rng);
+		}
+	},
+	{
+		name: 'Halloween 2026',
+		fn: async ({ channelId, data, rng, user }) => {
+			await handleHalloween2026TripFinish({ channelId, duration: data.duration, rng, user });
 		}
 	},
 	{
@@ -702,6 +710,7 @@ export async function handleTripFinish(
 		const start = performance.now();
 		const res = await effect.fn({
 			data,
+			channelId,
 			user,
 			loot: loot ?? null,
 			components,

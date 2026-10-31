@@ -1857,6 +1857,26 @@ export const allCollectionLogs: ICollection = {
 					BSOItem.NIGHTMARE
 				])
 			},
+			'Halloween 2026': {
+				alias: ['hween2026', 'halloween 2026'],
+				items: resolveItems([
+					'Cob',
+					'Halloween cracker',
+					'Human tooth',
+					'Human blood',
+					'Sliced femur',
+					'Human appendage'
+				]),
+				counts: false,
+				allItems: resolveItems([
+					'Cob',
+					'Halloween cracker',
+					'Human tooth',
+					'Human blood',
+					'Sliced femur',
+					'Human appendage'
+				])
+			},
 			'Halloween Cracker': {
 				items: resolveItems([
 					'Zombie halloween mask',
