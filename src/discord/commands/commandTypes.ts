@@ -77,18 +77,8 @@ function validateCommandOptions(value: unknown, optionDefinitions: readonly Comm
 		if (option.type === 'Integer' && !Number.isSafeInteger(optionValue)) {
 			return inputValidationErrorMsg(option.name, 'must be a whole number.');
 		}
-		if (optionValue < 0 && !option.allowNegative) {
-			return inputValidationErrorMsg(option.name, 'cannot be negative.');
-		}
-
-		let minimum = option.min_value;
-		if (option.allowNegative && optionValue < 0) {
-			minimum = minimum !== undefined && minimum < 0 ? minimum : undefined;
-		} else if (minimum === undefined && ['quantity', 'amount', 'count', 'number'].includes(option.name)) {
-			minimum = 1;
-		}
-		if (minimum !== undefined && optionValue < minimum) {
-			return inputValidationErrorMsg(option.name, `must be at least ${minimum}.`);
+		if (option.min_value !== undefined && optionValue < option.min_value) {
+			return inputValidationErrorMsg(option.name, `must be at least ${option.min_value}.`);
 		}
 		if (option.max_value !== undefined && optionValue > option.max_value) {
 			return inputValidationErrorMsg(option.name, `must be at most ${option.max_value}.`);
