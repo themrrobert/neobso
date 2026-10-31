@@ -1,9 +1,25 @@
-import { isAtleastThisOld, Time } from '@oldschoolgg/toolkit';
-import { DiscordSnowflake } from '@sapphire/snowflake';
 import { Bank } from 'oldschooljs';
 
 import { mahojiInformationalButtons } from '@/lib/sharedComponents.js';
 import { fetchUserStats } from '@/lib/util/fetchUserStats.js';
+
+export function getStarterPack() {
+	return new Bank({
+		Shark: 300,
+		'Saradomin brew(4)': 50,
+		'Super restore(4)': 20,
+		'Anti-dragon shield': 1,
+		'Tiny lamp': 5,
+		'Small lamp': 2,
+		'Tradeable mystery box': 5,
+		'Untradeable Mystery box': 5,
+		'Dragon bones': 50,
+		Coins: 50_000_000,
+		'Clue scroll (beginner)': 10,
+		'Equippable mystery box': 1,
+		'Pet Mystery box': 1
+	});
+}
 
 export async function minionBuyCommand(user: MUser, ironman: boolean): CommandResponse {
 	if (user.hasMinion) return 'You already have a minion!';
@@ -14,28 +30,8 @@ export async function minionBuyCommand(user: MUser, ironman: boolean): CommandRe
 		minion_ironman: Boolean(ironman)
 	});
 
-	const createdAt = DiscordSnowflake.timestampFrom(user.id);
-	const starter = isAtleastThisOld(createdAt, Time.Day * 180)
-		? new Bank({
-				Shark: 300,
-				'Saradomin brew(4)': 50,
-				'Super restore(4)': 20,
-				'Anti-dragon shield': 1,
-				'Tiny lamp': 5,
-				'Small lamp': 2,
-				'Tradeable mystery box': 5,
-				'Untradeable Mystery box': 5,
-				'Dragon bones': 50,
-				Coins: 50_000_000,
-				'Clue scroll (beginner)': 10,
-				'Equippable mystery box': 1,
-				'Pet Mystery box': 1
-			})
-		: null;
-
-	if (starter) {
-		await user.addItemsToBank({ items: starter, collectionLog: false });
-	}
+	const starter = getStarterPack();
+	await user.addItemsToBank({ items: starter, collectionLog: false });
 	// Ensure user has a userStats row
 	await fetchUserStats(user.id);
 
@@ -52,7 +48,7 @@ export async function minionBuyCommand(user: MUser, ironman: boolean): CommandRe
 
 Please click the buttons below for important links.
 
-${starter !== null ? `**You received these starter items:** ${starter}.` : ''}`,
+**You received these starter items:** ${starter}.`,
 		components: mahojiInformationalButtons
 	};
 }

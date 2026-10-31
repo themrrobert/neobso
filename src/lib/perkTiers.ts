@@ -1,7 +1,8 @@
-import { Time } from '@oldschoolgg/toolkit';
+import { getPerkTierEx, Time } from '@oldschoolgg/toolkit';
 import { LRUCache } from 'lru-cache';
 
 import { BitField, BOT_TYPE, PerkTier } from '@/lib/constants.js';
+import { findGroupOfUser } from '@/lib/bso/util/findGroupOfUser.js';
 import type { RobochimpUser } from '@/lib/roboChimp.js';
 
 export const RobochimpBitfieldEnum = {
@@ -64,6 +65,15 @@ export function getPerkTierCached(userId: string) {
 		return tierCacheEntry.tier;
 	}
 	return null;
+}
+
+export async function getGroupRoboChimpUsers(userId: string, forceNoCache = false) {
+	const groupUserIds = await findGroupOfUser(userId);
+	return Promise.all(groupUserIds.map(groupUserId => Cache.getRoboChimpUser(groupUserId, forceNoCache)));
+}
+
+export async function getGroupRoboChimpBits(userId: string, forceNoCache = false) {
+	return (await getGroupRoboChimpUsers(userId, forceNoCache)).flatMap(roboChimpUser => roboChimpUser.bits);
 }
 
 export function getRoboChimpPaidTierDisplay(bits: number[], { perkTier }: { perkTier?: number | null }): string;
@@ -178,16 +188,16 @@ export async function getUsersPerkTier({
 	}
 	// END TODO
 
-	const roboChimpCached = await Cache.getRoboChimpUser(user.id);
-	if (roboChimpCached) {
-		eligibleTiers.push(roboChimpCached.perk_tier);
-		if (
-			roboChimpCached.premium_balance_tier &&
-			roboChimpCached.premium_balance_expiry_date &&
-			Number(roboChimpCached.premium_balance_expiry_date) > Date.now()
-		) {
-			eligibleTiers.push(roboChimpCached.premium_balance_tier);
-		}
+	const roboChimpUsers = await getGroupRoboChimpUsers(user.id, forceNoCache);
+	for (const roboChimpUser of roboChimpUsers) {
+		eligibleTiers.push(
+			getPerkTierEx({
+				patreonBits: roboChimpUser.bits,
+				premiumTier: roboChimpUser.premium_balance_tier,
+				premiumExpiry: roboChimpUser.premium_balance_expiry_date
+			}),
+			roboChimpUser.perk_tier
+		);
 	}
 
 	if (bitfield.includes(BitField.HasPermanentTierOne)) {

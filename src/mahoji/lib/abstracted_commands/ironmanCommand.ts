@@ -3,6 +3,7 @@ import type { ItemBank } from 'oldschooljs';
 import { Prisma } from '@/prisma/main.js';
 import { BitField, DELETED_USER_ID } from '@/lib/constants.js';
 import { assert } from '@/lib/util/logError.js';
+import { getStarterPack } from '@/mahoji/lib/abstracted_commands/minionBuyCommand.js';
 
 async function ensureDeletedUserExists() {
 	try {
@@ -182,9 +183,11 @@ Type \`confirm permanent ironman\` if you understand the above information, and 
 		minion_ironman: true,
 		minion_hasBought: true
 	});
+	const starter = getStarterPack();
+	await user.addItemsToBank({ items: starter, collectionLog: false });
 	assert(
 		!user.user.GP && !user.user.QP && !user.user.skills_woodcutting,
 		`Ironman sanity check - ID: ${user.user.id}`
 	);
-	return 'You are now an ironman.';
+	return `You are now an ironman. You received these starter items: ${starter}.`;
 }
