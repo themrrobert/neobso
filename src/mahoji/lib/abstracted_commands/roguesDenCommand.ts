@@ -1,10 +1,10 @@
 import { formatDuration, reduceNumByPercent, Time } from '@oldschoolgg/toolkit';
 import { Bank } from 'oldschooljs';
 
-import type { MinigameActivityTaskOptionsWithNoChanges } from '@/lib/types/minions.js';
+import type { RoguesDenMazeActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
 
-export async function roguesDenCommand(user: MUser, channelId: string) {
+export async function roguesDenCommand(user: MUser, channelId: string, inputQuantity?: number) {
 	if (await user.minionIsBusy()) return `${user.minionName} is busy.`;
 	if (user.skillsAsLevels.agility < 50 || user.skillsAsLevels.thieving < 50) {
 		return "To attempt the Rogues' Den maze you need 50 Agility and 50 Thieving.";
@@ -24,19 +24,29 @@ export async function roguesDenCommand(user: MUser, channelId: string) {
 
 	baseTime = reduceNumByPercent(baseTime, skillPercentage);
 
-	let quantity = Math.floor((await user.calcMaxTripLength('RoguesDenMaze')) / baseTime);
+	const maxTripLength = await user.calcMaxTripLength('RoguesDenMaze');
+	let maxQuantity = Math.floor(maxTripLength / baseTime);
+	const hasStaminaPotions = user.hasEquippedOrInBank('Stamina potion(4)');
 
-	if (user.hasEquippedOrInBank('Stamina potion(4)')) {
+	if (hasStaminaPotions) {
 		baseTime = reduceNumByPercent(baseTime, 50);
 
 		const potionsInBank = user.bank.amount('Stamina potion(4)');
-		const maxPossibleLaps = Math.floor((await user.calcMaxTripLength('RoguesDenMaze')) / baseTime);
+		const maxPossibleLaps = Math.floor(maxTripLength / baseTime);
 
 		// do as many laps as possible with the current stamina potion supply
-		quantity = Math.min(potionsInBank * 4, maxPossibleLaps);
-		staminasToRemove.add('Stamina potion(4)', Math.max(1, Math.floor(quantity / 4)));
+		maxQuantity = Math.min(potionsInBank * 4, maxPossibleLaps);
 	} else {
 		boosts.push('-50% not enough Stamina potions');
+	}
+
+	if (inputQuantity && inputQuantity > maxQuantity) {
+		return `${user.minionName} can't complete more than ${maxQuantity}x Rogues' Den laps in one trip.`;
+	}
+
+	const quantity = inputQuantity ?? maxQuantity;
+	if (hasStaminaPotions) {
+		staminasToRemove.add('Stamina potion(4)', Math.ceil(quantity / 4));
 	}
 
 	const duration = quantity * baseTime;
@@ -46,10 +56,11 @@ export async function roguesDenCommand(user: MUser, channelId: string) {
 		await ClientSettings.updateBankSetting('rogues_den_cost', staminasToRemove);
 	}
 
-	await ActivityManager.startTrip<MinigameActivityTaskOptionsWithNoChanges>({
+	await ActivityManager.startTrip<RoguesDenMazeActivityTaskOptions>({
 		userID: user.id,
 		channelId,
 		quantity,
+		iQty: inputQuantity,
 		duration,
 		minigameID: 'rogues_den',
 		type: 'RoguesDenMaze'

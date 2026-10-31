@@ -89,6 +89,7 @@ import type {
 	PickpocketActivityTaskOptions,
 	PlunderActivityTaskOptions,
 	RaidsOptions,
+	RoguesDenMazeActivityTaskOptions,
 	RunecraftActivityTaskOptions,
 	SawmillActivityTaskOptions,
 	ScatteringActivityTaskOptions,
@@ -566,7 +567,8 @@ export function minionStatus(user: MUser, currentTask: ActivityTaskData | null, 
 		}
 
 		case 'RoguesDenMaze': {
-			return `${name} is currently attempting the Rogues' Den maze. ${formattedDuration}`;
+			const data = currentTask as RoguesDenMazeActivityTaskOptions;
+			return `${name} is currently attempting the Rogues' Den maze ${data.quantity}x. ${formattedDuration}`;
 		}
 
 		case 'Gauntlet': {

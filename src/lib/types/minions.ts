@@ -393,7 +393,6 @@ export interface MinigameActivityTaskOptionsWithNoChanges extends MinigameActivi
 		| 'TroubleBrewing'
 		| 'TearsOfGuthix'
 		| 'SoulWars'
-		| 'RoguesDenMaze'
 		| 'MageTrainingArena'
 		| 'LastManStanding'
 		| 'BigChompyBirdHunting'
@@ -409,6 +408,11 @@ export interface MinigameActivityTaskOptionsWithNoChanges extends MinigameActivi
 		| 'BalthazarsBigBonanza'
 		| 'GuthixianCache'
 		| 'AgilityArena';
+}
+
+export interface RoguesDenMazeActivityTaskOptions extends MinigameActivityTaskOptions {
+	type: 'RoguesDenMaze';
+	iQty?: number;
 }
 
 export interface MahoganyHomesActivityTaskOptions extends MinigameActivityTaskOptions {
@@ -742,6 +746,7 @@ export type ActivityTaskData =
 	| FightCavesActivityTaskOptions
 	| ActivityTaskOptionsWithQuantity
 	| MinigameActivityTaskOptionsWithNoChanges
+	| RoguesDenMazeActivityTaskOptions
 	| BossActivityTaskOptions
 	| CutLeapingFishActivityTaskOptions
 	| CutLeapingFishActivityTaskOptions

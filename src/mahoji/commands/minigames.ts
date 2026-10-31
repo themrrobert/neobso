@@ -689,7 +689,16 @@ export const minigamesCommand = defineCommand({
 				{
 					type: 'Subcommand',
 					name: 'start',
-					description: 'Start a trip.'
+					description: 'Start a trip.',
+					options: [
+						{
+							type: 'Integer',
+							name: 'quantity',
+							description: 'Number of laps.',
+							required: false,
+							min_value: 1
+						}
+					]
 				}
 			]
 		},
@@ -1385,7 +1394,7 @@ export const minigamesCommand = defineCommand({
 		 *
 		 */
 		if (options.rogues_den) {
-			return roguesDenCommand(user, channelId);
+			return roguesDenCommand(user, channelId, options.rogues_den.start.quantity);
 		}
 
 		/**

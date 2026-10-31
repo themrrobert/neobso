@@ -1,6 +1,6 @@
 import { Bank, ItemGroups } from 'oldschooljs';
 
-import type { ActivityTaskOptionsWithQuantity } from '@/lib/types/minions.js';
+import type { RoguesDenMazeActivityTaskOptions } from '@/lib/types/minions.js';
 import { makeBankImage } from '@/lib/util/makeBankImage.js';
 
 function getLowestCountOutfitPiece(bank: Bank): number {
@@ -21,7 +21,7 @@ function getLowestCountOutfitPiece(bank: Bank): number {
 export const roguesDenTask: MinionTask = {
 	type: 'RoguesDenMaze',
 
-	async run(data: ActivityTaskOptionsWithQuantity, { user, handleTripFinish, rng }) {
+	async run(data: RoguesDenMazeActivityTaskOptions, { user, handleTripFinish, rng }) {
 		const { channelId, quantity } = data;
 
 		await user.incrementMinigameScore('rogues_den', quantity);

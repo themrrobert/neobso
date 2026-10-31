@@ -77,6 +77,7 @@ import type {
 	PickpocketActivityTaskOptions,
 	PuroPuroActivityTaskOptions,
 	RaidsOptions,
+	RoguesDenMazeActivityTaskOptions,
 	RunecraftActivityTaskOptions,
 	SawmillActivityTaskOptions,
 	ScatteringActivityTaskOptions,
@@ -265,7 +266,7 @@ const tripHandlers: {
 	[activity_type_enum.CamdozaalSmithing]: {
 		commandName: 'activities',
 		args: (data: ActivityTaskOptionsWithQuantity) => ({
-			camdozaal: { action: 'smithing', quantity: data.quantity }
+			camdozaal: { action: 'smithing', quantity: data.iQty }
 		})
 	},
 	[activity_type_enum.CamdozaalFishing]: {
@@ -638,8 +639,8 @@ const tripHandlers: {
 	},
 	[activity_type_enum.RoguesDenMaze]: {
 		commandName: 'minigames',
-		args: () => ({
-			rogues_den: {}
+		args: (data: RoguesDenMazeActivityTaskOptions) => ({
+			rogues_den: { start: { quantity: data.iQty } }
 		})
 	},
 	[activity_type_enum.Sawmill]: {
