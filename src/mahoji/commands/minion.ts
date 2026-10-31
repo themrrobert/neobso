@@ -50,7 +50,10 @@ const patMessages = [
 export async function getUserInfo(user: MUser) {
 	await refreshUserCache({ user });
 	const roboChimpUsers = await getGroupRoboChimpUsers(user.id);
-	const roboChimpUser = roboChimpUsers.find(ru => ru.id === BigInt(user.id))!;
+	const roboChimpUser = roboChimpUsers.find(ru => ru.id === BigInt(user.id));
+	if (!roboChimpUser) {
+		throw new Error('User not found in RoboChimp');
+	}
 	const leaguesRanking = await roboChimpClient.user.count({
 		where: {
 			leagues_points_total: {
