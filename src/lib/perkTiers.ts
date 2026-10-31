@@ -104,36 +104,6 @@ export function getRoboChimpPaidTierDisplay(
 	return labels.length === 0 ? (perkTier && perkTier > 0 ? `Perk Tier ${perkTier}` : 'None') : labels.join(', ');
 }
 
-export function getCyrTripBonus(user: RobochimpUser): number;
-export function getCyrTripBonus(bits: number[]): number;
-export function getCyrTripBonus(bitsOrUser: number[] | RobochimpUser | null | undefined) {
-	const bits = bitsOrUser && 'bits' in bitsOrUser ? bitsOrUser.bits : bitsOrUser;
-	if (!bits || bits.length === 0) {
-		return 0;
-	}
-	let cyrBonus = 0;
-	const highestTier = CYR_TIER_BITS.find(tier => bits.includes(tier.bit))?.number;
-	switch (highestTier) {
-		case 1:
-			cyrBonus = Time.Minute * 7;
-			break;
-		case 2:
-			cyrBonus = Time.Minute * 11;
-			break;
-		case 3:
-		default:
-			// Default of 3 minutes
-			cyrBonus = Time.Minute * 3;
-			if (highestTier && highestTier >= 3) {
-				cyrBonus = Time.Minute * 16;
-			}
-			break;
-	}
-	if (bits.includes(RobochimpBitfieldEnum.CyrsOriginalPatrons)) {
-		cyrBonus += Time.Minute * 2;
-	}
-	return cyrBonus;
-}
 
 export async function getUsersPerkTier({
 	user,
