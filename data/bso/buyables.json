@@ -3802,7 +3802,7 @@
 	},
 	{
 		"name": "Potato with cheese",
-		"gp_cost": 2650,
+		"gp_cost": 650,
 		"skills_needed": {
 			"attack": 65,
 			"strength": 65
