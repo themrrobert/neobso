@@ -16,6 +16,7 @@ import { unEquipAllCommand } from '@/lib/minions/functions/unequipAllCommand.js'
 import { unequipPet } from '@/lib/minions/functions/unequipPet.js';
 import { premiumPatronTime } from '@/lib/premiumPatronTime.js';
 import { TeamLoot } from '@/lib/simulation/TeamLoot.js';
+import { lookupUsernames } from '@/lib/user/userUtils.js';
 import itemIsTradeable from '@/lib/util/itemIsTradeable.js';
 import { makeBankImage } from '@/lib/util/makeBankImage.js';
 import { migrateUser } from '@/lib/util/migrateUser.js';
@@ -705,13 +706,7 @@ Date: ${dateFm(date)}`;
 				type: 'gri' | 'trade' | 'giveaway';
 				guild_id: string;
 			}[] = await prisma.$queryRawUnsafe(sql);
-			const usernames = new Map(
-				await Promise.all(
-					[...new Set(result.flatMap(row => [row.sender_id, row.recipient_id]))].map(
-						async id => [id, await Cache.getUsername(id)] as const
-					)
-				)
-			);
+			const usernames = await lookupUsernames(result.flatMap(row => [row.sender_id, row.recipient_id]));
 			for (const row of result) {
 				const sentBank = new Bank(row.items_sent);
 				const recvBank = new Bank(row.items_received);

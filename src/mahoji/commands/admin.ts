@@ -52,6 +52,7 @@ import { GrandExchange } from '@/lib/grandExchange.js';
 import { syncCustomPrices } from '@/lib/preStartup.js';
 import { countUsersWithItemInCl } from '@/lib/rawSql.js';
 import { sorts } from '@/lib/sorts.js';
+import { lookupUsernames } from '@/lib/user/userUtils.js';
 import { makeBankImage } from '@/lib/util/makeBankImage.js';
 import { parseBank } from '@/lib/util/parseStringBank.js';
 import { safeMessage } from '@/lib/util/smallUtils.js';
@@ -129,21 +130,6 @@ function toBigInt(value: string | number | bigint) {
 	return typeof value === 'bigint' ? value : BigInt(value);
 }
 
-async function fetchUsernames(userIDs: string[]) {
-	const users = await roboChimpClient.discordUser.findMany({
-		where: {
-			id: {
-				in: userIDs
-			}
-		},
-		select: {
-			id: true,
-			username: true
-		}
-	});
-	return new Map(users.map(user => [user.id, user.username ?? 'Unknown']));
-}
-
 interface AdminRunnableCommandArg {
 	name: string;
 	description: string;
@@ -190,7 +176,7 @@ const adminRunnableCommands: AdminRunnableCommand[] = [
 		args: [],
 		run: async () => {
 			const usersWithTickets = await findUsersWithLotteryTickets();
-			const usernames = await fetchUsernames(usersWithTickets.map(user => user.id));
+			const usernames = await lookupUsernames(usersWithTickets.map(user => user.id));
 			const csv = [
 				'user_id,username,quantity',
 				...usersWithTickets.map(user =>
@@ -272,7 +258,7 @@ async function buildCleanupDuplicatesTSV(
 		beforePoints: { total: number; osb: number; bso: number };
 	}[]
 ) {
-	const usernames = await fetchUsernames(users.map(user => user.userID));
+	const usernames = await lookupUsernames(users.map(user => user.userID));
 	return [
 		'userID\tusername\tduplicateTasksIDs\tpointsToRemove\tcurrentTotal\tcurrentOsb\tcurrentBSO',
 		...users.map(user =>
@@ -290,7 +276,7 @@ async function buildCleanupDuplicatesTSV(
 }
 
 async function buildValidateTasksTSV(users: LeaguesTaskAuditUserResult[]) {
-	const usernames = await fetchUsernames(users.map(user => user.userID));
+	const usernames = await lookupUsernames(users.map(user => user.userID));
 	return [
 		'userID\tusername\tduplicateTasksIDs\tpointsToRemove\tcurrentTotal\tcurrentOsb\tcurrentBSO',
 		...users.map(user =>
@@ -535,7 +521,7 @@ GROUP BY user_id
 ORDER BY num DESC
 LIMIT 10;
 `);
-			const usernames = await fetchUsernames(res.map(i => i.user_id));
+			const usernames = await lookupUsernames(res.map(i => i.user_id));
 			return {
 				content: `Most Active Users in past 48h\n${res
 					.map((i, ind) => `${ind + 1} ${usernames.get(i.user_id) ?? 'Unknown'}: ${formatDuration(i.num)}`)

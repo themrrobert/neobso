@@ -18,6 +18,7 @@ import { Farming } from '@/lib/skilling/skills/farming/index.js';
 import type { FarmingPatchName, FarmingPatchSettingsKey } from '@/lib/skilling/skills/farming/utils/farmingHelpers.js';
 import type { IPatchData } from '@/lib/skilling/skills/farming/utils/types.js';
 import { MUserClass } from '@/lib/user/MUser.js';
+import { lookupUsernames } from '@/lib/user/userUtils.js';
 import { handleGiveawayCompletion } from '@/lib/util/giveaway.js';
 
 /**
@@ -170,9 +171,10 @@ AND (
 )
 ORDER BY random()
 LIMIT 10;`);
+			const usernames = await lookupUsernames(users.map(user => user.id));
 			for (const u of users) {
 				const user = new MUserClass(u);
-				user.username = await Cache.getUsername(u.id);
+				user.username = usernames.get(u.id) ?? 'Unknown';
 				const { patches } = Farming.getFarmingInfoFromUser(user);
 
 				const patchesReadyToHarvest: FarmingPatchName[] = [];

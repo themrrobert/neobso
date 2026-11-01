@@ -1,7 +1,28 @@
 import { EquipmentSlot, type GearSetup, type GearSetupType } from '@oldschoolgg/gear';
+import { cleanUsername } from '@oldschoolgg/toolkit';
+import { isValidDiscordSnowflake } from '@oldschoolgg/util';
 import { Bank, Items } from 'oldschooljs';
 
 import { Gear } from '@/lib/structures/Gear.js';
+
+export async function lookupUsernames(userIds: string[]): Promise<Map<string, string>> {
+	const ids = [...new Set(userIds)];
+	if (ids.some(id => !isValidDiscordSnowflake(id))) {
+		throw new Error('Invalid userID');
+	}
+	if (ids.length === 0) return new Map();
+
+	const usernames = new Map(ids.map(id => [id, 'Unknown']));
+	const discordUsers = await roboChimpClient.discordUser.findMany({
+		where: { id: { in: ids } },
+		select: { id: true, username: true }
+	});
+	for (const user of discordUsers) {
+		const username = user.username ? cleanUsername(user.username) : '';
+		if (username) usernames.set(user.id, username);
+	}
+	return usernames;
+}
 
 export async function validateEquippedGear(user: MUser) {
 	const itemsUnequippedAndRefunded = new Bank();

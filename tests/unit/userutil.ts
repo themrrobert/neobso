@@ -90,7 +90,8 @@ const mockUser = (overrides?: MockUserArgs): User => {
 };
 
 export const mockMUser = (overrides?: MockUserArgs) => {
-	const user = new MUserClass(mockUser(overrides), overrides?.username ?? 'Magnaboy');
+	const user = new MUserClass(mockUser(overrides));
+	user.username = overrides?.username ?? 'Magnaboy';
 	return user;
 };
 

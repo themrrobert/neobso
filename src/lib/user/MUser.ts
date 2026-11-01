@@ -34,7 +34,6 @@ import type {
 	Minigame,
 	Prisma,
 	TameActivity,
-	User,
 	UserStats,
 	XpGainSource
 } from '@/prisma/main.js';
