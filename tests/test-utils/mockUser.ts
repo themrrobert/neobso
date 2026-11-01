@@ -30,6 +30,7 @@ export class TestUser extends MUserClass {
 	constructor(user: MUser | User, client?: TestClient) {
 		super(user instanceof MUserClass ? user.user : user);
 		this.client = client!;
+		if (user instanceof MUserClass) this.username = user.username;
 	}
 
 	async setBank(bank: Bank) {
@@ -199,7 +200,7 @@ export class TestUser extends MUserClass {
 	getIUser(): IUser {
 		return {
 			id: this.user.id,
-			username: this.user.username || 'UnknownIUser',
+			username: this.username,
 			bot: false
 		};
 	}
@@ -356,11 +357,11 @@ export async function mockUser(
 }
 
 export async function createTestUser(_bank?: Bank, userData: Partial<Prisma.UserCreateInput> = {}) {
-	const id = userData.id ?? mockedId();
-	userData.username ??= `TestUser`;
+	const { username = 'TestUser', ...mainUserData } = userData;
+	const id = mainUserData.id ?? mockedId();
 
 	const bank = _bank ? _bank.clone() : null;
-	let GP = userData.GP ? Number(userData.GP) : undefined;
+	let GP = mainUserData.GP ? Number(mainUserData.GP) : undefined;
 	if (bank) {
 		if (GP) {
 			GP += bank.amount('Coins');
@@ -374,13 +375,13 @@ export async function createTestUser(_bank?: Bank, userData: Partial<Prisma.User
 		prisma.user.upsert({
 			create: {
 				id,
-				...userData,
+				...mainUserData,
 				bank: bank?.toJSON(),
 				GP: GP ?? undefined,
 				minion_hasBought: true
 			},
 			update: {
-				...userData,
+				...mainUserData,
 				bank: bank?.toJSON(),
 				GP
 			},
@@ -408,8 +409,7 @@ export async function createTestUser(_bank?: Bank, userData: Partial<Prisma.User
 		})
 	]);
 
-	if (user.username) {
-		await Cache.setUsername(id, user.username);
-	}
-	return new TestUser(user);
+	const testUser = new TestUser(user);
+	if (username !== null) testUser.username = username;
+	return testUser;
 }

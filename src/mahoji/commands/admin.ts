@@ -130,7 +130,7 @@ function toBigInt(value: string | number | bigint) {
 }
 
 async function fetchUsernames(userIDs: string[]) {
-	const users = await prisma.user.findMany({
+	const users = await roboChimpClient.discordUser.findMany({
 		where: {
 			id: {
 				in: userIDs
@@ -141,7 +141,6 @@ async function fetchUsernames(userIDs: string[]) {
 			username: true
 		}
 	});
-
 	return new Map(users.map(user => [user.id, user.username ?? 'Unknown']));
 }
 
@@ -528,18 +527,18 @@ WHERE blowpipe iS NOT NULL and (blowpipe->>'dartQuantity')::int != 0;`),
 	{
 		name: 'Most Active',
 		run: async () => {
-			const res = await prisma.$queryRawUnsafe<{ num: number; username: string }[]>(`
-SELECT sum(duration)::int as num, "users"."username", user_id
+			const res = await prisma.$queryRawUnsafe<{ num: number; user_id: string }[]>(`
+SELECT sum(duration)::int as num, user_id::text
 FROM activity
-INNER JOIN "users" on "users"."id" = "activity"."user_id"::text
 WHERE start_date > now() - interval '2 days'
-GROUP BY user_id, "users"."username"
+GROUP BY user_id
 ORDER BY num DESC
 LIMIT 10;
 `);
+			const usernames = await fetchUsernames(res.map(i => i.user_id));
 			return {
 				content: `Most Active Users in past 48h\n${res
-					.map((i, ind) => `${ind + 1} ${i.username}: ${formatDuration(i.num)}`)
+					.map((i, ind) => `${ind + 1} ${usernames.get(i.user_id) ?? 'Unknown'}: ${formatDuration(i.num)}`)
 					.join('\n')}`
 			};
 		}
@@ -1116,7 +1115,7 @@ export const adminCommand = defineCommand({
 			});
 
 			return `${action === 'add' ? 'Added' : 'Removed'} ${badgeName} ${badges[badgeID]} badge to ${
-				options.badges.user.user.username
+				userToUpdateBadges.username
 			}.`;
 		}
 
@@ -1130,7 +1129,7 @@ export const adminCommand = defineCommand({
 					push: BitField.BypassAgeRestriction
 				}
 			});
-			return `Bypassed age restriction for ${options.bypass_age.user.user.username}.`;
+			return `Bypassed age restriction for ${userToBypassAge.username}.`;
 		}
 
 		if (options.command) {

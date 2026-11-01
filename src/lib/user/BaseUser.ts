@@ -4,7 +4,7 @@ import { MaterialBank } from '@/lib/bso/skills/invention/MaterialBank.js';
 import { escapeMarkdown, userMention } from '@oldschoolgg/discord';
 import { defaultGearSetup, type GearSetup } from '@oldschoolgg/gear';
 import { type ECombatOption, type IBlowpipeData, ZBlowpipeData } from '@oldschoolgg/schemas';
-import { cleanUsername, Emoji, sumArr, Time } from '@oldschoolgg/toolkit';
+import { Emoji, sumArr, Time } from '@oldschoolgg/toolkit';
 import { Bank, convertXPtoLVL, type Item, type ItemBank, Items, resolveItems } from 'oldschooljs';
 import { clone } from 'remeda';
 
@@ -135,7 +135,6 @@ export class BaseUser {
 		this._bankLazy = null;
 		this._clLazy = null;
 		this._gearLazy = null;
-		this._username = this.user.username ? cleanUsername(this.user.username) : 'Unknown';
 		this.skillsAsXP = this.getSkills(false);
 		this.skillsAsLevels = this.getSkills(true);
 
@@ -348,6 +347,7 @@ export class BaseUser {
 		const newUser = await prisma.user.findUnique({ where: { id: this.id } });
 		if (!newUser) throw new Error(`Failed to sync user ${this.id}, no record was found`);
 		this._updateRawUser(newUser);
+		this.username = await Cache.getUsername(this.id);
 	}
 
 	get logName() {

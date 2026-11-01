@@ -675,7 +675,7 @@ Date: ${dateFm(date)}`;
 		}
 		if (options.player?.list_trades) {
 			const baseSql =
-				'SELECT date, sender::text as sender_id, recipient::text as recipient_id, s.username as sender, r.username as recipient, items_sent, items_received, type, guild_id::text from economy_transaction e inner join users s on sender = s.id::bigint inner join users r on recipient = r.id::bigint';
+				'SELECT date, sender::text as sender_id, recipient::text as recipient_id, items_sent, items_received, type, guild_id::text from economy_transaction';
 			const where: string[] = [];
 			if (options.player.list_trades.partner) {
 				const inUsers = `(${options.player.list_trades.partner.user.id}, ${options.player.list_trades.user.user.id})`;
@@ -700,13 +700,18 @@ Date: ${dateFm(date)}`;
 				date: Date;
 				sender_id: string;
 				recipient_id: string;
-				sender: string;
-				recipient: string;
 				items_sent: ItemBank;
 				items_received: ItemBank;
 				type: 'gri' | 'trade' | 'giveaway';
 				guild_id: string;
 			}[] = await prisma.$queryRawUnsafe(sql);
+			const usernames = new Map(
+				await Promise.all(
+					[...new Set(result.flatMap(row => [row.sender_id, row.recipient_id]))].map(
+						async id => [id, await Cache.getUsername(id)] as const
+					)
+				)
+			);
 			for (const row of result) {
 				const sentBank = new Bank(row.items_sent);
 				const recvBank = new Bank(row.items_received);
@@ -748,8 +753,8 @@ Date: ${dateFm(date)}`;
 				// Add report row:
 				report += `${row.date.toLocaleString('en-us')}\t${row.guild_id}\t${row.sender_id}\t${
 					row.recipient_id
-				}\t${row.sender}\t${
-					row.recipient
+				}\t${usernames.get(row.sender_id) ?? 'Unknown'}\t${
+					usernames.get(row.recipient_id) ?? 'Unknown'
 				}\t${sentBank}\t${recvBank}\t${sentValueGuide}\t${recvValueGuide}\t${sentValueLast100}\t${recvValueLast100}\n`;
 			}
 			report += '\n\n';

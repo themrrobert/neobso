@@ -172,6 +172,7 @@ ORDER BY random()
 LIMIT 10;`);
 			for (const u of users) {
 				const user = new MUserClass(u);
+				user.username = await Cache.getUsername(u.id);
 				const { patches } = Farming.getFarmingInfoFromUser(user);
 
 				const patchesReadyToHarvest: FarmingPatchName[] = [];

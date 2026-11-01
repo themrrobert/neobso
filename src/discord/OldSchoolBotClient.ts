@@ -19,7 +19,6 @@ import { omit } from 'remeda';
 
 import { makeParty } from '@/discord/interaction/makeParty.js';
 import { mentionCommand, resolveBotSendableMessage } from '@/discord/utils.js';
-import { DISCORD_USER_IDS_INSERTED_CACHE } from '@/lib/cache.js';
 import { BOT_TYPE_LOWERCASE, globalConfig } from '@/lib/constants.js';
 import { ReactEmoji } from '@/lib/data/emojis.js';
 import type { MakePartyOptions } from '@/lib/types/index.js';
@@ -116,7 +115,6 @@ export class OldSchoolBotClient extends DiscordClient {
 	}
 
 	async upsertDiscordUser(user: APIUser) {
-		if (DISCORD_USER_IDS_INSERTED_CACHE.has(user.id)) return;
 		const data = {
 			id: user.id,
 			username: user.username,
@@ -124,17 +122,20 @@ export class OldSchoolBotClient extends DiscordClient {
 			avatar: user.avatar,
 			created_at: new Date(DiscordSnowflake.timestampFrom(user.id))
 		} as const;
-		const { created_at, ...update } = data; // only write created_at one creation.
-		await roboChimpClient.discordUser
-			.upsert({
+		// Make a copy of `data`, removing `created_at` for UPDATE methods.
+		const { created_at, ...update } = data;
+		try {
+			await roboChimpClient.discordUser.upsert({
 				where: {
 					id: user.id
 				},
 				create: data,
 				update
-			})
-			.catch(err => Logging.logError(err));
-		DISCORD_USER_IDS_INSERTED_CACHE.add(user.id);
+			});
+			await Cache.setUsername(user.id, user.username);
+		} catch (err: any) {
+			Logging.logError(err);
+		}
 	}
 
 	mentionCommand(name: string, subCommand?: string, subSubCommand?: string) {

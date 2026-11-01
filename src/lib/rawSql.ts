@@ -55,11 +55,7 @@ WHERE id = '${userId}'`);
 };
 
 export const SQL = {
-	SELECT_FULL_NAME:
-		"TRIM(COALESCE(string_agg(b.text, ' '), '') || ' ' || COALESCE(username, 'Unknown')) AS full_name",
-	LEFT_JOIN_BADGES: 'LEFT JOIN badges b ON b.id = ANY(u.badges)',
-	GROUP_BY_U_ID: 'GROUP BY u.id',
-	WHERE_IRON: (ironOnly: boolean) => (ironOnly ? '"minion.ironman" = true' : '')
+	WHERE_IRON: (ironOnly: boolean, andOr?: 'AND' | 'OR') => (ironOnly ? `${andOr ?? ''} "minion.ironman" = true` : '')
 } as const;
 
 /**
@@ -73,7 +69,7 @@ export async function countUsersWithItemInCl(itemID: number, ironmenOnly: boolea
 				   FROM users
 				   WHERE ("collectionLogBank"->>'${itemID}') IS NOT NULL
 				   AND ("collectionLogBank"->>'${itemID}')::int >= 1
-				   ${ironmenOnly ? 'AND "minion.ironman" = true' : ''};`;
+				   ${SQL.WHERE_IRON(ironmenOnly, 'AND')};`;
 	const res = await prisma.$queryRawUnsafe<{ count: bigint }[]>(query);
 	const count = Number(res[0].count);
 	if (Number.isNaN(count)) {

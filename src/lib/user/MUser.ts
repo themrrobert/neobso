@@ -85,10 +85,6 @@ import type { JsonKeys } from '@/lib/util.js';
 import { getParsedStashUnits } from '@/mahoji/lib/abstracted_commands/stashUnitsCommand.js';
 
 export class MUserClass extends BaseUser {
-	constructor(user: User) {
-		super(user);
-	}
-
 	getGearUpdateData(gearUpdates: GearWithSetupType[]) {
 		const newGearData: Partial<Record<GearColumns, GearSetup | null>> = {};
 		for (const { setup, gear } of gearUpdates) {
@@ -1210,8 +1206,9 @@ export async function srcMUserFetch(userID: string, updates?: Prisma.UserUpdateI
 	if (!user) {
 		return srcMUserFetch(userID, {});
 	}
-	user.username = await Cache.getUsername(user.id);
-	return new MUserClass(user);
+	const mUser = new MUserClass(user);
+	mUser.username = await Cache.getUsername(user.id);
+	return mUser;
 }
 
 global.mUserFetch = srcMUserFetch;

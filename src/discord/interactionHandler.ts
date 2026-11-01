@@ -11,7 +11,6 @@ import { DiscordSnowflake } from '@sapphire/snowflake';
 import { autoCompleteHandler } from '@/discord/autoCompleteHandler.js';
 import { commandHandler } from '@/discord/commandHandler.js';
 import type { OldSchoolBotClient } from '@/discord/OldSchoolBotClient.js';
-import { DISCORD_USER_IDS_INSERTED_CACHE } from '@/lib/cache.js';
 import { OSInteraction } from '@/lib/structures/OSInteraction.js';
 import { globalButtonInteractionHandlerWrapper } from '@/lib/util/globalInteractions.js';
 
@@ -20,8 +19,8 @@ export async function interactionHandler(client: OldSchoolBotClient, itx: APIInt
 	const user = (itx.member?.user ?? itx.user)!;
 	const userId = user.id;
 
-	if (!DISCORD_USER_IDS_INSERTED_CACHE.has(userId) && user) {
-		client.upsertDiscordUser(user);
+	if (user) {
+		await client.upsertDiscordUser(user);
 	}
 
 	const fullUser = await mUserFetch(userId);

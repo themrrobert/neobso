@@ -85,4 +85,3 @@ export const itemEffectImageCache = new LRUCache<string, CanvasImage>({ max: 100
 export const slayerMaskLeaderboardCache = new Map<number, string>();
 export const MUTEX_CACHE = new Map<string, Mutex>();
 
-export const DISCORD_USER_IDS_INSERTED_CACHE = new Set<string>();

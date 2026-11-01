@@ -58,17 +58,9 @@ export class TestClient extends AsyncEventEmitter<any> implements AsyncDisposabl
 	}
 
 	async fetchUser(userId: string): Promise<APIUser> {
-		const user = await global.prisma!.user.findUnique({
-			where: {
-				id: userId
-			},
-			select: {
-				username: true
-			}
-		});
 		return {
 			id: userId,
-			username: user?.username ?? 'TestUser',
+			username: await Cache.getUsername(userId),
 			bot: false
 		} as APIUser;
 	}

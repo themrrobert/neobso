@@ -13,6 +13,10 @@ const testUser = mockMUser({
 const bankWithGP = new Bank().add('Coal').add('Egg').add('Coins', 100_000).freeze();
 
 describe('MUser.test', () => {
+	test('uses the supplied cached username', () => {
+		expect(testUser.username).toEqual('Magnaboy');
+	});
+
 	test('hasSkillReqs', () => {
 		expect(testUser.hasSkillReqs({ agility: 49 })).toEqual(true);
 		expect(testUser.hasSkillReqs({ agility: 50 })).toEqual(true);

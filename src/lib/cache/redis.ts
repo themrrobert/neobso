@@ -356,14 +356,9 @@ class CacheManager {
 		return this.client.get(fullKey);
 	}
 
-	private async setExpiringString(fullKey: string, value: string): Promise<void> {
-		const jitterSeconds = Math.floor(Math.random() * TTL.Hour * 2) - TTL.Hour;
+	private async setExpiringString(fullKey: string, value: string, time = TTL.Hour): Promise<void> {
+		const jitterSeconds = Math.floor(Math.random() * time * 2) - time;
 		await this.setString(fullKey, value, TTL.Day + jitterSeconds);
-	}
-
-	private expiringDayTTL(): number {
-		const jitterSeconds = Math.floor(Math.random() * TTL.Hour * 2) - TTL.Hour;
-		return TTL.Day + jitterSeconds;
 	}
 
 	private jitterTTL(baseSeconds: number, percent: number): number {
@@ -379,38 +374,23 @@ class CacheManager {
 		const cached = await this.getExpiringString(RedisKeys.Discord.Username(userId));
 		if (cached) return cached;
 
-		let username: string | null = null;
-		const djsUser = await globalClient.fetchUser(userId).catch(() => null);
-		if (djsUser?.username) {
-			username = cleanUsername(djsUser.username);
-		}
-
-		const user = await prisma.user.upsert({
-			where: {
-				id: userId
-			},
-			create: {
-				id: userId,
-				username: username ?? undefined
-			},
-			update: username
-				? {
-						username
-					}
-				: {},
-			select: {
-				username: true
-			}
+		const discordUser = await roboChimpClient.discordUser.findUnique({
+			where: { id: userId },
+			select: { username: true }
 		});
+		const username = discordUser?.username ? cleanUsername(discordUser.username) : '';
+		if (!username) return 'Unknown';
 
-		if (!user.username) return 'Unknown';
-
-		await this.setUsername(userId, user.username);
-		return user.username;
+		await this.setUsername(userId, username);
+		return username;
 	}
 
 	async setUsername(userId: string, username: string): Promise<void> {
-		await this.setExpiringString(RedisKeys.Discord.Username(userId), username);
+		const cleanedUsername = cleanUsername(username);
+		await this.client.del(BotKeys.User.BadgedUsername(userId));
+		if (cleanedUsername) {
+			await this.setExpiringString(RedisKeys.Discord.Username(userId), cleanedUsername);
+		}
 	}
 
 	async resetUsername(userId: string) {
@@ -617,7 +597,7 @@ class CacheManager {
 		await this.setJsonWithTTL(
 			BotKeys.WebhookPermissions(permissions.channel_id),
 			permissions,
-			this.expiringDayTTL()
+			this.jitterTTL(TTL.Day, 10)
 		);
 	}
 

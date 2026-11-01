@@ -1,7 +1,7 @@
 import { stringMatches } from '@oldschoolgg/toolkit';
 
-import { SQL } from '@/lib/rawSql.js';
 import { userEventsToMap } from '@/lib/util/userEvents.js';
+import {SQL} from "@/lib/rawSql.js";
 
 export async function fetchMultipleCLLeaderboards(
 	leaderboards: {
@@ -38,15 +38,10 @@ export async function fetchMultipleCLLeaderboards(
 			const userIdsList = userIds.length > 0 ? userIds.map(i => `'${i}'`).join(', ') : 'NULL';
 
 			const query = `
-SELECT id, qty, full_name
-FROM (
-    	SELECT u.id, CARDINALITY(cl_array & ${SQL_ITEMS}) AS qty, ${SQL.SELECT_FULL_NAME}
-    	FROM users u
-		${SQL.LEFT_JOIN_BADGES}
-    	WHERE (cl_array && ${SQL_ITEMS}
-		${ironmenOnly ? 'AND "u"."minion.ironman" = true' : ''}) ${userIds.length > 0 ? `OR u.id IN (${userIdsList})` : ''}
-		${SQL.GROUP_BY_U_ID}
-	) AS subquery
+SELECT u.id, CARDINALITY(cl_array & ${SQL_ITEMS}) AS qty
+FROM users u
+WHERE (cl_array && ${SQL_ITEMS}
+${SQL.WHERE_IRON(ironmenOnly, 'AND')}) ${userIds.length > 0 ? `OR u.id IN (${userIdsList})` : ''}
 ORDER BY qty DESC
 LIMIT ${resultLimit};
 `;

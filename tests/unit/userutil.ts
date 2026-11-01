@@ -33,6 +33,7 @@ export interface MockUserArgs {
 	GP?: number;
 	bitfield?: BitField[];
 	id?: string;
+	username?: string;
 }
 
 const mockUser = (overrides?: MockUserArgs): User => {
@@ -78,7 +79,6 @@ const mockUser = (overrides?: MockUserArgs): User => {
 		skills_divination: 0,
 		GP: overrides?.GP ?? 0,
 		bitfield: overrides?.bitfield ?? [],
-		username: 'Magnaboy',
 		QP: overrides?.QP ?? 0,
 		sacrificedValue: 0,
 		id: overrides?.id ?? '',
@@ -90,7 +90,7 @@ const mockUser = (overrides?: MockUserArgs): User => {
 };
 
 export const mockMUser = (overrides?: MockUserArgs) => {
-	const user = new MUserClass(mockUser(overrides));
+	const user = new MUserClass(mockUser(overrides), overrides?.username ?? 'Magnaboy');
 	return user;
 };
 
