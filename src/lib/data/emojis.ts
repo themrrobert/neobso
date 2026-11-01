@@ -54,8 +54,8 @@ export const EmojiId = {
 
 export const ReactEmoji = globalConfig.isProduction
 	? {
-			Happy: 'RSHappy:380915244760825857',
-			Sad: 'RSSad:380915244652036097',
+			Happy: 'RSHappy:1566584225342300370',
+			Sad: 'RSSad:1566584259580526657',
 			Gift: '🎁'
 		}
 	: {
