@@ -1,7 +1,10 @@
-import { getNextUTCReset, Time } from '@oldschoolgg/toolkit';
+import { ButtonBuilder, ButtonStyle, collectSingleInteraction } from '@oldschoolgg/discord';
+import { getNextUTCReset, noOp, sleep, Time } from '@oldschoolgg/toolkit';
 import { Bank, type Item, type ItemBank, Items, itemID, resolveItems } from 'oldschooljs';
 import { clamp } from 'remeda';
 
+import { JibUhmzHeads } from '@/lib/canvas/chatHeadImage.js';
+import jibUhmzData from '@/lib/resources/jibumhz.json' with { type: 'json' };
 import { type SkillNameType, SkillsArray } from '@/lib/skilling/types.js';
 import type { Skills } from '@/lib/types/index.js';
 import { assert } from '@/lib/util/logError.js';
@@ -15,7 +18,9 @@ interface IXPLamp {
 	allowedSkills?: SkillNameType[];
 }
 
-const customLampIDs = new Set(resolveItems(['Tiny lamp', 'Small lamp', 'Average lamp', 'Large lamp', 'Huge lamp']));
+export const customLampIDs = new Set(
+	resolveItems(['Tiny lamp', 'Small lamp', 'Average lamp', 'Large lamp', 'Huge lamp'])
+);
 
 export const XPLamps: IXPLamp[] = [
 	{
@@ -382,5 +387,244 @@ export async function lampCommand(
 				: `\n\nYou have ${Math.max(remainingXP - amount, 0).toLocaleString()}/${maxDailyLampXP.toLocaleString()} XP Remaining before your Daily Limit`;
 
 		return { content: `You used ${toRemoveFromBank}. ${xpStr}${remainingMessage}` };
+	});
+}
+
+const jibTactics = ['aggressively', 'sweetly', 'cowardly'] as const;
+type JibTactic = (typeof jibTactics)[number];
+
+interface JibTemplateContext {
+	cost: Bank;
+	lamp: Item;
+	loot: Bank;
+	countSequence?: number[];
+}
+
+const jibNumberWords: Record<number, string[]> = {
+	1: ['wan', 'one', '1'],
+	2: ['too', 'two', '2'],
+	3: ['free', 'three', '3'],
+	4: ['four', '4'],
+	5: ['fiv', 'five', '5'],
+	6: ['sikx', 'six', '6'],
+	7: ['sevin', 'seven', '7'],
+	8: ['ate', 'eight', '8'],
+	9: ['nien', 'nine', '9']
+};
+
+function jibLampCount(bank: Bank) {
+	return bank.items().reduce((total, [, quantity]) => total + quantity, 0);
+}
+
+function makeBrokenCountSequence(rng: RNGProvider, quantity: number) {
+	if (quantity === 0) return [];
+	const first = rng.pick([1, 2, 3, 4, 5, 6]);
+	const sequence = [first];
+	if (quantity > 1) sequence.push(Math.min(first + 1, 9));
+	if (quantity > 2) sequence.push(rng.pick([first, Math.max(first - 1, 1), Math.min(first + 3, 9)]));
+	while (sequence.length < quantity) {
+		sequence.push(rng.pick([1, 2, 3, 4, 5, 6, 7, 8, 9]));
+	}
+	return sequence;
+}
+
+function randomJibTemplateValue(rng: RNGProvider, key: string) {
+	const values = (jibUhmzData.templateValues as Record<string, string[]>)[key];
+	return values ? rng.pick(values) : `{${key}}`;
+}
+
+function renderJibTemplate(rng: RNGProvider, template: string, context: JibTemplateContext) {
+	let numberIndex = 0;
+	return template
+		.replace(/\{#(LOOT|COST|\d+)?\}/g, (_match, token: string | undefined) => {
+			if (token === 'LOOT') return jibLampCount(context.loot).toString();
+			if (token === 'COST') return jibLampCount(context.cost).toString();
+
+			const number = token
+				? Number(token)
+				: (context.countSequence?.[numberIndex] ?? rng.pick([1, 2, 3, 4, 5, 6, 7, 8, 9]));
+			const choices = jibNumberWords[number]!;
+			const result =
+				numberIndex === 0
+					? rng.pick(choices.filter(choice => choice !== number.toString()))
+					: numberIndex === 1
+						? number.toString()
+						: rng.pick(choices);
+			numberIndex++;
+			return result;
+		})
+		.replace(/\{(?:A|AN)#([A-Z_]+)\}/g, (_match, key: string) => {
+			const value = randomJibTemplateValue(rng, key);
+			return `${/^[aeiou]/i.test(value) ? 'an' : 'a'} ${value}`;
+		})
+		.replace(/\{([A-Z_]+)\}/g, (_match, key: string) => {
+			if (key === 'COST') return context.cost.toString();
+			if (key === 'LAMP') return context.lamp.name;
+			return randomJibTemplateValue(rng, key);
+		});
+}
+
+function jibPayout(targetXP: number) {
+	const lampOptions = XPLamps.filter(lamp => customLampIDs.has(lamp.itemID)).sort((a, b) => b.amount - a.amount);
+	const loot = new Bank();
+	let remainingXP = targetXP;
+	for (const lamp of lampOptions) {
+		const quantity = Math.floor(remainingXP / lamp.amount);
+		if (quantity === 0) continue;
+		loot.add(lamp.itemID, quantity);
+		remainingXP -= quantity * lamp.amount;
+	}
+	return loot;
+}
+
+function jibOffer(rng: RNGProvider, tactic: JibTactic, lamp: Item) {
+	const tacticData = jibUhmzData.tactics[tactic];
+	const opening = rng.pick(jibUhmzData.openingMessages.filter(message => message.tactic === tactic));
+	const context: JibTemplateContext = {
+		cost: new Bank().add(lamp.id),
+		lamp,
+		loot: new Bank()
+	};
+	const speech = renderJibTemplate(
+		rng,
+		opening.template
+			.replaceAll('{FRUIT}', rng.pick(tacticData.fruits))
+			.replaceAll('{PLACE}', rng.pick(tacticData.places)),
+		context
+	);
+	const adjective = randomJibTemplateValue(rng, 'ADJECTIVE');
+	const adverb = randomJibTemplateValue(rng, 'ADVERB');
+
+	return {
+		head: rng.pick(JibUhmzHeads),
+		headContent: `${speech} Bring me your precious ${lamp.name}.`,
+		content: `*The game ${adverb} tells you something cool about ${/^[aeiou]/i.test(adjective) ? 'an' : 'a'} ${adjective} goblin. You can see the words “Jib Uhmz” scratched into his grimy grimer.*\n\nJust as you are about to leave, a much shorter goblin pops out of a crack you did not know was there, clutching a suspicious counting stick. He insists his height has nothing to do with this.\n\n“You approach cautiously, but without fear. Your ${lamp.name} is held tight and out of sight. If you proceed, you will have no choice but to accept his offer.....”\n\nDo you want to trade your ${lamp.name} to Jib Uhmz? You know he only pays 80%, but he also can't count. You are **definitely** going to get ripped off. How do you want to play this?`
+	};
+}
+
+async function chooseJibTactic(interaction: MInteraction, user: MUser, offer: ReturnType<typeof jibOffer>) {
+	const buttons = [
+		new ButtonBuilder().setCustomId('JIB_UHMZ_AGGRESSIVELY').setLabel('Aggressively').setStyle(ButtonStyle.Primary),
+		new ButtonBuilder().setCustomId('JIB_UHMZ_SWEETLY').setLabel('Sweetly').setStyle(ButtonStyle.Success),
+		new ButtonBuilder().setCustomId('JIB_UHMZ_COWARDLY').setLabel('Cowardly').setStyle(ButtonStyle.Secondary),
+		new ButtonBuilder().setCustomId('JIB_UHMZ_RUN').setLabel('Run!').setStyle(ButtonStyle.Danger)
+	];
+
+	await interaction.defer();
+	const response = await interaction.replyWithResponse(
+		await new MessageBuilder()
+			.setContent(offer.content)
+			.addChatHeadImage(offer.head, offer.headContent)
+			.addComponents(buttons)
+			.build()
+	);
+	if (!response) return null;
+
+	const picked = await collectSingleInteraction({
+		interaction,
+		messageId: response.message_id,
+		channelId: interaction.channelId,
+		users: [user.id],
+		timeoutMs: Time.Second * 30
+	});
+	if (!picked) return null;
+	await picked.silentButtonAck();
+
+	const tacticsByButton: Record<string, JibTactic | 'run'> = {
+		JIB_UHMZ_AGGRESSIVELY: 'aggressively',
+		JIB_UHMZ_SWEETLY: 'sweetly',
+		JIB_UHMZ_COWARDLY: 'cowardly',
+		JIB_UHMZ_RUN: 'run'
+	};
+	return tacticsByButton[picked.customId!] ?? null;
+}
+
+async function sendJibDelayedCounting({
+	channelId,
+	context,
+	rng
+}: {
+	channelId: string;
+	context: JibTemplateContext;
+	rng: RNGProvider;
+}) {
+	if (!rng.roll(10)) return;
+	const webhookPermissions = await Cache.getWebhookPermissions(channelId);
+	if (!webhookPermissions.can_create_webhook) return;
+
+	const lines = rng.pick(jibUhmzData.delayedCountingMessages);
+	const joined = lines.join('\u0000');
+	const countTokenQuantity = (joined.match(/\{#\}/g) ?? []).length;
+	const content = renderJibTemplate(rng, joined, {
+		...context,
+		countSequence: makeBrokenCountSequence(rng, countTokenQuantity)
+	}).split('\u0000');
+
+	await globalClient.sendMessageOrWebhook(
+		channelId,
+		new MessageBuilder().addChatHeadImage(rng.pick(JibUhmzHeads), content[0])
+	);
+	await sleep(rng.pick([3, 4, 5, 6]) * Time.Second);
+	await globalClient.sendMessageOrWebhook(
+		channelId,
+		new MessageBuilder().addChatHeadImage(rng.pick(JibUhmzHeads), content[1])
+	);
+	await sleep(rng.pick([5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]) * Time.Second);
+	await globalClient.sendMessageOrWebhook(
+		channelId,
+		new MessageBuilder().addChatHeadImage(rng.pick(JibUhmzHeads), content[2])
+	);
+}
+
+export async function jibUhmzTradeCommand({
+	channelId,
+	interaction,
+	itemToTrade,
+	rng,
+	user
+}: {
+	channelId: string;
+	interaction: MInteraction;
+	itemToTrade: string;
+	rng: RNGProvider;
+	user: MUser;
+}): Promise<CommandResponse> {
+	const lamp = Items.getItem(itemToTrade);
+	if (!lamp || !customLampIDs.has(lamp.id)) {
+		return 'Jib Uhmz only trades Tiny, Small, Average, Large, and Huge lamps.';
+	}
+
+	if (!user.owns(new Bank().add(lamp.id))) {
+		return `You don't have a ${lamp.name} in your bank.`;
+	}
+
+	const tactic = await chooseJibTactic(interaction, user, jibOffer(rng, rng.pick(jibTactics), lamp));
+	if (!tactic) return 'Jib Uhmz loses interest and vanishes back into his crack.';
+	if (tactic === 'run') return 'You run. Jib Uhmz hisses about his precious lamps from somewhere behind the wall.';
+
+	return user.withLock('jibuhmz_trade', async lockedUser => {
+		const cost = new Bank().add(lamp.id);
+		if (!lockedUser.owns(cost)) return `You don't have a ${lamp.name} in your bank anymore.`;
+
+		const lampValue = XPLamps.find(xpLamp => xpLamp.itemID === lamp.id)!.amount;
+		let payoutValue = Math.floor(lampValue * 0.8);
+		if (tactic !== (jibUhmzData.bestTactic as JibTactic)) {
+			if (rng.roll(2)) payoutValue = Math.floor(payoutValue * 0.9);
+			if (rng.roll(10)) payoutValue = Math.floor(payoutValue * 0.85);
+		}
+
+		const loot = jibPayout(payoutValue);
+		await lockedUser.removeItemsFromBank(cost);
+		await lockedUser.addItemsToBank({ items: loot });
+		await lockedUser.statsBankUpdate('jibuhmz_input', cost);
+		await lockedUser.statsBankUpdate('jibuhmz_output', loot);
+
+		const context: JibTemplateContext = { cost, lamp, loot };
+		const payoutSpeech = renderJibTemplate(rng, rng.pick(jibUhmzData.payoutMessages), context);
+		void sendJibDelayedCounting({ channelId, context, rng }).catch(noOp);
+
+		return new MessageBuilder()
+			.setContent(`${lockedUser} traded ${cost} with Jib Uhmz and received ${loot}.`)
+			.addChatHeadImage(rng.pick(JibUhmzHeads), payoutSpeech);
 	});
 }

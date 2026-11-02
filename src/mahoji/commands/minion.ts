@@ -34,7 +34,12 @@ import { cancelTaskCommand } from '@/mahoji/lib/abstracted_commands/cancelTaskCo
 import { crackerCommand } from '@/mahoji/lib/abstracted_commands/crackerCommand.js';
 import { dailyCommand } from '@/mahoji/lib/abstracted_commands/dailyCommand.js';
 import { ironmanCommand } from '@/mahoji/lib/abstracted_commands/ironmanCommand.js';
-import { Lampables, lampCommand } from '@/mahoji/lib/abstracted_commands/lampCommand.js';
+import {
+	customLampIDs,
+	jibUhmzTradeCommand,
+	Lampables,
+	lampCommand
+} from '@/mahoji/lib/abstracted_commands/lampCommand.js';
 import { minionBuyCommand } from '@/mahoji/lib/abstracted_commands/minionBuyCommand.js';
 import { minionStatusCommand } from '@/mahoji/lib/abstracted_commands/minionStatusCommand.js';
 
@@ -206,45 +211,78 @@ export const minionCommand = defineCommand({
 			]
 		},
 		{
-			type: 'Subcommand',
+			type: 'SubcommandGroup',
 			name: 'lamp',
-			description: 'Use lamps to claim XP.',
+			description: 'Use a lamp or trade one with Jib Uhmz.',
 			options: [
 				{
-					type: 'String',
-					name: 'item',
-					description: 'The item you want to use.',
-					autocomplete: async ({ value, user }: StringAutoComplete) => {
-						const mappedLampables = Lampables.map(i => i.items)
-							.flat(2)
-							.map(id => Items.get(id))
-							.filter(notEmpty)
-							.map(i => ({ id: i.id, name: i.name }));
+					type: 'Subcommand',
+					name: 'use',
+					description: 'Use a lamp to claim XP.',
+					options: [
+						{
+							type: 'String',
+							name: 'item',
+							description: 'The item you want to use.',
+							autocomplete: async ({ value, user }: StringAutoComplete) => {
+								const mappedLampables = Lampables.map(i => i.items)
+									.flat(2)
+									.map(id => Items.get(id))
+									.filter(notEmpty)
+									.map(i => ({ id: i.id, name: i.name }));
 
-						return user.bank
-							.items()
-							.filter(i => mappedLampables.map(l => l.id).includes(i[0].id))
-							.filter(i => {
-								if (!value) return true;
-								return i[0].name.toLowerCase().includes(value.toLowerCase());
-							})
-							.map(i => ({ name: `${i[0].name} (${i[1]}x Owned)`, value: i[0].name.toLowerCase() }));
-					},
-					required: true
+								return user.bank
+									.items()
+									.filter(i => mappedLampables.map(l => l.id).includes(i[0].id))
+									.filter(i => {
+										if (!value) return true;
+										return i[0].name.toLowerCase().includes(value.toLowerCase());
+									})
+									.map(i => ({
+										name: `${i[0].name} (${i[1]}x Owned)`,
+										value: i[0].name.toLowerCase()
+									}));
+							},
+							required: true
+						},
+						{
+							...skillOption,
+							required: true,
+							name: 'skill',
+							description: 'The skill you want to use the item on.'
+						},
+						{
+							type: 'Integer',
+							name: 'quantity',
+							description: 'You quantity you want to use.',
+							required: false,
+							min_value: 1,
+							max_value: 100_000
+						}
+					]
 				},
 				{
-					...skillOption,
-					required: true,
-					name: 'skill',
-					description: 'The skill you want to use the item on.'
-				},
-				{
-					type: 'Integer',
-					name: 'quantity',
-					description: 'You quantity you want to use.',
-					required: false,
-					min_value: 1,
-					max_value: 100_000
+					type: 'Subcommand',
+					name: 'trade',
+					description: 'Trade a custom lamp with Jib Uhmz.',
+					options: [
+						{
+							type: 'String',
+							name: 'lamp',
+							description: 'The custom lamp you want to trade.',
+							autocomplete: async ({ value, user }: StringAutoComplete) => {
+								return user.bank
+									.items()
+									.filter(([item]) => customLampIDs.has(item.id))
+									.filter(([item]) => !value || item.name.toLowerCase().includes(value.toLowerCase()))
+									.map(([item, quantity]) => ({
+										name: `${item.name} (${quantity}x Owned)`,
+										value: item.name.toLowerCase()
+									}));
+							},
+							required: true
+						}
+					]
 				}
 			]
 		},
@@ -474,8 +512,23 @@ export const minionCommand = defineCommand({
 			});
 		}
 
-		if (options.lamp) {
-			return lampCommand(interaction, user, options.lamp.item, options.lamp.skill, options.lamp.quantity);
+		if (options.lamp?.use) {
+			return lampCommand(
+				interaction,
+				user,
+				options.lamp.use.item,
+				options.lamp.use.skill,
+				options.lamp.use.quantity
+			);
+		}
+		if (options.lamp?.trade) {
+			return jibUhmzTradeCommand({
+				channelId,
+				interaction,
+				itemToTrade: options.lamp.trade.lamp,
+				rng,
+				user
+			});
 		}
 
 		if (options.cancel) return cancelTaskCommand(user, interaction);

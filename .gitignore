@@ -1,6 +1,7 @@
 # Klasa
 *.log
 trivia-questions.json
+src/lib/resources/jibumhz.json
 dist/
 icon_cache/
 .env

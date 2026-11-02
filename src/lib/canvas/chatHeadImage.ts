@@ -24,7 +24,14 @@ export type HeadKey =
 	| 'polterpup'
 	| 'agatha'
 	| 'unknownVampire'
-	| 'wurMuTheMonkey';
+	| 'wurMuTheMonkey'
+	| 'jibUhmz1'
+	| 'jibUhmz2'
+	| 'jibUhmz3'
+	| 'jibUhmz4'
+	| 'jibUhmz5';
+
+export const JibUhmzHeads: HeadKey[] = ['jibUhmz1', 'jibUhmz2', 'jibUhmz3', 'jibUhmz4', 'jibUhmz5'];
 
 const basePath = './src/lib/resources/images';
 const chatBase = `${basePath}/chat_heads`;
@@ -52,7 +59,12 @@ const chatHeadPaths: Record<HeadKey, string> = {
 	polterpup: 'polterpup.png',
 	agatha: 'agatha.png',
 	unknownVampire: 'unknownVampire.png',
-	wurMuTheMonkey: 'monkeychild.png'
+	wurMuTheMonkey: 'monkeychild.png',
+	jibUhmz1: 'jibUhmz-1.png',
+	jibUhmz2: 'jibUhmz-2.png',
+	jibUhmz3: 'jibUhmz-3.png',
+	jibUhmz4: 'jibUhmz-4.png',
+	jibUhmz5: 'jibUhmz-5.png'
 };
 
 const names: Record<HeadKey, string> = {
@@ -78,7 +90,12 @@ const names: Record<HeadKey, string> = {
 	polterpup: 'Polterpup',
 	agatha: 'Agatha the Witch',
 	unknownVampire: 'Unknown',
-	wurMuTheMonkey: 'Wur Mu the Monkey'
+	wurMuTheMonkey: 'Wur Mu the Monkey',
+	jibUhmz1: 'Jib Uhmz',
+	jibUhmz2: 'Jib Uhmz',
+	jibUhmz3: 'Jib Uhmz',
+	jibUhmz4: 'Jib Uhmz',
+	jibUhmz5: 'Jib Uhmz'
 };
 
 const imagePromiseCache = new Map<string, Promise<CanvasImage>>();
