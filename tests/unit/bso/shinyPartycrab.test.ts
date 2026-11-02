@@ -29,11 +29,11 @@ describe('Mona paint preview', () => {
 			return;
 		}
 
-	const snapshot = await readFile(snapshotPath).catch(async error => {
-		if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
-		await (await import('node:fs/promises')).writeFile(snapshotPath, preview);
-		return preview;
-	});
-	expect(Buffer.compare(preview, snapshot)).toBe(0);
+		const snapshot = await readFile(snapshotPath).catch(async error => {
+			if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+			await (await import('node:fs/promises')).writeFile(snapshotPath, preview);
+			return preview;
+		});
+		expect(Buffer.compare(preview, snapshot)).toBe(0);
 	});
 });

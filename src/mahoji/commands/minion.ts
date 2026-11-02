@@ -475,7 +475,7 @@ export const minionCommand = defineCommand({
 		}
 
 		if (options.lamp) {
-			return lampCommand(user, options.lamp.item, options.lamp.skill, options.lamp.quantity);
+			return lampCommand(interaction, user, options.lamp.item, options.lamp.skill, options.lamp.quantity);
 		}
 
 		if (options.cancel) return cancelTaskCommand(user, interaction);

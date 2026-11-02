@@ -28,7 +28,9 @@ try {
 	if (rows.length > 0) {
 		console.log('Username | Time remaining | Task Type');
 		for (const activity of rows) {
-			console.log(`${activity.username} | ${formatDuration(activity.remaining_seconds * 1000)} | ${activity.type}`);
+			console.log(
+				`${activity.username} | ${formatDuration(activity.remaining_seconds * 1000)} | ${activity.type}`
+			);
 		}
 		process.exitCode = 1;
 	}

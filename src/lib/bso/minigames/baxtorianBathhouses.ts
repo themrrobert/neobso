@@ -1,6 +1,5 @@
 import { GLOBAL_BSO_XP_MULTIPLIER } from '@/lib/bso/bsoConstants.js';
 import type { BathhouseTaskOptions } from '@/lib/bso/bsoTypes.js';
-import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 import { MysteryBoxes } from '@/lib/bso/openables/tables.js';
 import type { MTame } from '@/lib/bso/structures/MTame.js';
 
@@ -12,6 +11,7 @@ import type { User } from '@/prisma/main.js';
 import Grimy from '@/lib/skilling/skills/herblore/mixables/grimy.js';
 import type { Skills } from '@/lib/types/index.js';
 import { formatSkillRequirements } from '@/lib/util/smallUtils.js';
+import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export const bathhouseTierNames = ['Warm', 'Hot', 'Fiery'] as const;
 export type BathhouseTierName = (typeof bathhouseTierNames)[number];

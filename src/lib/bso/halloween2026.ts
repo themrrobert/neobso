@@ -1,7 +1,7 @@
-import { type HeadKey } from '@/lib/canvas/chatHeadImage.js';
-
 import { noOp, Time } from '@oldschoolgg/toolkit';
 import { Bank, LootTable } from 'oldschooljs';
+
+import type { HeadKey } from '@/lib/canvas/chatHeadImage.js';
 
 export const Halloween2026LootTable = new LootTable()
 	.oneIn(50, 'Cob')
@@ -56,10 +56,7 @@ export async function handleHalloween2026TripFinish({
 		if (!rng.roll(1000)) continue;
 		await user.addItemsToBank({ items: new Bank().add('Cob'), collectionLog: true });
 		await globalClient
-			.sendDm(
-				user.id,
-				new MessageBuilder().addChatHeadImage('unknownVampire', rng.pick(cobMessages))
-			)
+			.sendDm(user.id, new MessageBuilder().addChatHeadImage('unknownVampire', rng.pick(cobMessages)))
 			.catch(noOp);
 		return;
 	}

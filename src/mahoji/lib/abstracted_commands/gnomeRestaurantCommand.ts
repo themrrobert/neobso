@@ -4,8 +4,8 @@ import { Bank } from 'oldschooljs';
 import { getPOHObject } from '@/lib/poh/index.js';
 import type { GnomeRestaurantActivityTaskOptions } from '@/lib/types/minions.js';
 import { formatTripDuration } from '@/lib/util/minionUtils.js';
-import { getPOH } from '@/mahoji/lib/abstracted_commands/pohCommand.js';
 import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
+import { getPOH } from '@/mahoji/lib/abstracted_commands/pohCommand.js';
 
 export async function gnomeRestaurantCommand(rng: RNGProvider, user: MUser, channelId: string) {
 	let deliveryLength = Time.Minute * 7;

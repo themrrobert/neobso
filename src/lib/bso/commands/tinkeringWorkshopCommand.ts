@@ -6,6 +6,7 @@ import { MaterialBank } from '@/lib/bso/skills/invention/MaterialBank.js';
 import { formatDuration, Time } from '@oldschoolgg/toolkit';
 import { randomVariation } from 'node-rng';
 import type { ItemBank } from 'oldschooljs';
+
 import { speedCalculations } from '@/mahoji/lib/abstracted_commands/minionKill/timeAndSpeed.js';
 
 export async function tinkeringWorkshopCommand(user: MUser, material: string, channelId: string) {

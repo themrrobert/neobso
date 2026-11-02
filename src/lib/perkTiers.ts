@@ -104,7 +104,6 @@ export function getRoboChimpPaidTierDisplay(
 	return labels.length === 0 ? (perkTier && perkTier > 0 ? `Perk Tier ${perkTier}` : 'None') : labels.join(', ');
 }
 
-
 export async function getUsersPerkTier({
 	user,
 	forceNoCache

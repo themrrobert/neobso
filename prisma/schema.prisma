@@ -145,6 +145,7 @@ model ClientStorage {
   maxing_message String @default("Congratulations on maxing!")
 
   // BSO
+  max_daily_lamp_xp       Int    @default(0)
   gp_ic                   BigInt @default(0)
   double_loot_finish_time BigInt @default(0)
   gp_pet                  BigInt @default(0)
@@ -928,7 +929,9 @@ model UserStats {
   ic_donations_given_bank    Json @default("{}") @db.Json
   ic_donations_received_bank Json @default("{}") @db.Json
 
-  lamped_xp Json @default("{}") @db.Json
+  lamped_xp        Json     @default("{}") @db.Json
+  daily_lamped_xp  Int      @default(0)
+  last_lamped_date DateTime @default(now()) @db.Timestamp(6)
 
   tame_cl_bank Json @default("{}") @db.JsonB
 

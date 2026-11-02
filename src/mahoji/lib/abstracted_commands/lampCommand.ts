@@ -1,3 +1,4 @@
+import { getNextUTCReset, Time } from '@oldschoolgg/toolkit';
 import { Bank, type Item, type ItemBank, Items, itemID, resolveItems } from 'oldschooljs';
 import { clamp } from 'remeda';
 
@@ -13,6 +14,8 @@ interface IXPLamp {
 	minimumLevel: number;
 	allowedSkills?: SkillNameType[];
 }
+
+const customLampIDs = new Set(resolveItems(['Tiny lamp', 'Small lamp', 'Average lamp', 'Large lamp', 'Huge lamp']));
 
 export const XPLamps: IXPLamp[] = [
 	{
@@ -287,7 +290,13 @@ export const Lampables: IXPObject[] = [
 	}
 ];
 
-export async function lampCommand(user: MUser, itemToUse: string, skill: string, _quantity: number | undefined) {
+export async function lampCommand(
+	interaction: MInteraction,
+	user: MUser,
+	itemToUse: string,
+	skill: string,
+	_quantity: number | undefined
+) {
 	if (_quantity !== undefined && (!Number.isSafeInteger(_quantity) || _quantity < 1)) {
 		return 'Quantity must be a positive whole number.';
 	}
@@ -302,9 +311,6 @@ export async function lampCommand(user: MUser, itemToUse: string, skill: string,
 
 	const qty = !_quantity ? 1 : clamp(_quantity, { min: 1, max: 1000 });
 	const toRemoveFromBank = new Bank().add(item.id, qty);
-	if (!user.owns(toRemoveFromBank)) {
-		return `You don't have **${toRemoveFromBank}** in your bank.`;
-	}
 
 	let skillsToReceive: Skills = {};
 	let skillsRequirements: Skills | undefined;
@@ -325,20 +331,56 @@ export async function lampCommand(user: MUser, itemToUse: string, skill: string,
 		]!}** in ${skill} to receive it.`;
 	}
 
-	const amount = skillsToReceive[skill]!;
-	assert(typeof amount === 'number' && amount > 0);
-	const stats = await user.fetchStats();
-	const newLampedXp = {
-		...(stats.lamped_xp as ItemBank)
-	};
-	if (!newLampedXp[skill]) newLampedXp[skill] = amount;
-	else newLampedXp[skill] += amount;
-	await user.statsUpdate({
-		lamped_xp: newLampedXp
+	const requestedAmount = skillsToReceive[skill]!;
+	assert(typeof requestedAmount === 'number' && requestedAmount > 0);
+
+	return user.withLock('lamp', async lockedUser => {
+		if (!lockedUser.owns(toRemoveFromBank)) {
+			return `You don't have **${toRemoveFromBank}** in your bank.`;
+		}
+
+		const { max_daily_lamp_xp: maxDailyLampXP } = await ClientSettings.fetch({ max_daily_lamp_xp: true });
+		if (maxDailyLampXP === -1 && customLampIDs.has(item.id)) {
+			return 'Custom lamps are currently disabled.';
+		}
+
+		const stats = await lockedUser.fetchStats();
+		const lastLampedTimestamp = stats.last_lamped_date.getTime();
+		const nextReset = getNextUTCReset(lastLampedTimestamp, Time.Day);
+		const isNewUTCDay = Date.now() >= nextReset;
+		const dailyLampedXP = isNewUTCDay ? 0 : stats.daily_lamped_xp;
+		const remainingXP = maxDailyLampXP > 0 ? Math.max(maxDailyLampXP - dailyLampedXP, 0) : null;
+		const amount = remainingXP === null ? requestedAmount : Math.min(requestedAmount, remainingXP);
+
+		if (amount === 0) {
+			const resetTimestamp = Math.floor(nextReset / 1000);
+			return `You have reached your daily lamp XP limit of **${maxDailyLampXP.toLocaleString()} XP**. It will reset at 00:00 UTC (<t:${resetTimestamp}:R>).`;
+		}
+
+		if (amount < requestedAmount) {
+			await interaction.confirmation(
+				`${user}, this lamp is worth **${requestedAmount.toLocaleString()} XP**, but you will receive only **${amount.toLocaleString()} XP** due to your daily limit. Use it anyway?`
+			);
+		}
+
+		const newLampedXp = {
+			...(stats.lamped_xp as ItemBank)
+		};
+		if (!newLampedXp[skill]) newLampedXp[skill] = amount;
+		else newLampedXp[skill] += amount;
+		await lockedUser.statsUpdate({
+			lamped_xp: newLampedXp,
+			daily_lamped_xp: dailyLampedXP + amount,
+			last_lamped_date: new Date()
+		});
+
+		await lockedUser.removeItemsFromBank(toRemoveFromBank);
+		const xpStr = await lockedUser.addXP({ skillName: skill, amount, artificial: true, multiplier: false });
+		const remainingMessage =
+			remainingXP === null
+				? ''
+				: `\n\nYou have ${Math.max(remainingXP - amount, 0).toLocaleString()}/${maxDailyLampXP.toLocaleString()} XP Remaining before your Daily Limit`;
+
+		return { content: `You used ${toRemoveFromBank}. ${xpStr}${remainingMessage}` };
 	});
-
-	await user.removeItemsFromBank(toRemoveFromBank);
-	const xpStr = await user.addXP({ skillName: skill, amount, artificial: true, multiplier: false });
-
-	return { content: `You used ${toRemoveFromBank}. ${xpStr}` };
 }
