@@ -21,6 +21,7 @@ import {
 import { getLydiaQuote } from '@/lib/bso/summerDays.js';
 
 import { dateFm, EmbedBuilder } from '@oldschoolgg/discord';
+import { isValidDiscordSnowflake } from '@oldschoolgg/util';
 import type { GearSetup } from '@oldschoolgg/gear';
 import {
 	calcPerHour,
@@ -49,11 +50,13 @@ import {
 } from '@/lib/bitFieldUtils.js';
 import { BadgesEnum, BitField, BitFieldData, badges, Channel, globalConfig, META_CONSTANTS } from '@/lib/constants.js';
 import { GrandExchange } from '@/lib/grandExchange.js';
+import { giveawayCache } from '@/lib/cache.js';
 import { syncCustomPrices } from '@/lib/preStartup.js';
 import { countUsersWithItemInCl } from '@/lib/rawSql.js';
 import { sorts } from '@/lib/sorts.js';
 import { lookupUsernames } from '@/lib/user/userUtils.js';
 import { makeBankImage } from '@/lib/util/makeBankImage.js';
+import { generateGiveawayContent } from '@/lib/util/giveaway.js';
 import { parseBank } from '@/lib/util/parseStringBank.js';
 import { safeMessage } from '@/lib/util/smallUtils.js';
 import { makeGiveawayButtons } from '@/mahoji/commands/giveaway.js';
@@ -1040,9 +1043,29 @@ export const adminCommand = defineCommand({
 			]
 		},
 		{
-			type: 'Subcommand',
-			name: 'fix_giveaways',
-			description: 'Re-add Join/Leave buttons to all active giveaways.'
+			type: 'SubcommandGroup',
+			name: 'giveaway',
+			description: 'Admin giveaway management commands.',
+			options: [
+				{
+					type: 'Subcommand',
+					name: 'fix_buttons',
+					description: 'Re-add Join/Leave buttons to all active giveaways.'
+				},
+				{
+					type: 'Subcommand',
+					name: 'allow_irons',
+					description: 'Toggle whether ironmen can join a giveaway.',
+					options: [
+						{
+							type: 'String',
+							name: 'message_id',
+							description: 'The message ID of the giveaway.',
+							required: true
+						}
+					]
+				}
+			]
 		}
 	],
 	run: async ({ options, userId, interaction, guildId, rng }) => {
@@ -1428,7 +1451,7 @@ ${META_CONSTANTS.RENDERED_STR}`
 			);
 		}
 
-		if (options.fix_giveaways) {
+		if (options.giveaway?.fix_buttons) {
 			const giveaways = await prisma.giveaway.findMany({
 				where: {
 					completed: false
@@ -1466,6 +1489,53 @@ ${META_CONSTANTS.RENDERED_STR}`
 				response += `\n\nFirst errors:\n${errors.slice(0, 10).join('\n')}`;
 			}
 			return response;
+		}
+
+		if (options.giveaway?.allow_irons) {
+			const { message_id: messageID } = options.giveaway.allow_irons;
+			if (!isValidDiscordSnowflake(messageID)) {
+				return 'Invalid message ID.';
+			}
+
+			const giveaway = await prisma.giveaway.findFirst({
+				where: {
+					message_id: messageID
+				}
+			});
+			if (!giveaway) return 'No giveaway found for that message ID.';
+			if (giveaway.completed) return 'That giveaway has already finished.';
+
+			const updatedGiveaway = await prisma.giveaway.update({
+				where: {
+					id: giveaway.id
+				},
+				data: {
+					allow_ironmen: !giveaway.allow_ironmen
+				}
+			});
+			giveawayCache.set(updatedGiveaway.id, updatedGiveaway);
+			const ironmanStatus = updatedGiveaway.allow_ironmen ? 'enabled' : 'disabled';
+
+			try {
+				await globalClient.editMessage(updatedGiveaway.channel_id, updatedGiveaway.message_id, {
+					content: generateGiveawayContent(
+						updatedGiveaway.user_id,
+						updatedGiveaway.finish_date,
+						updatedGiveaway.users_entered,
+						updatedGiveaway.allow_ironmen
+					)
+				});
+			} catch (err) {
+				Logging.logError(err as Error, {
+					command: 'admin_giveaway_allow_irons',
+					giveaway_id: updatedGiveaway.id,
+					channel_id: updatedGiveaway.channel_id,
+					message_id: updatedGiveaway.message_id
+				});
+				return `Ironmen are now ${ironmanStatus} for this giveaway, but I failed to edit the giveaway message.`;
+			}
+
+			return `Ironmen are now ${ironmanStatus} for giveaway message ${updatedGiveaway.message_id}.`;
 		}
 
 		if (options.item_stats) {

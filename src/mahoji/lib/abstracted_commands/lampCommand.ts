@@ -18,9 +18,7 @@ interface IXPLamp {
 	allowedSkills?: SkillNameType[];
 }
 
-export const customLampIDs = new Set(
-	resolveItems(['Tiny lamp', 'Small lamp', 'Average lamp', 'Large lamp', 'Huge lamp'])
-);
+export const customLampIDs = new Set(resolveItems(['Small lamp', 'Average lamp', 'Large lamp', 'Huge lamp']));
 
 export const XPLamps: IXPLamp[] = [
 	{
@@ -390,8 +388,8 @@ export async function lampCommand(
 	});
 }
 
-const jibTactics = ['aggressively', 'sweetly', 'cowardly'] as const;
-type JibTactic = (typeof jibTactics)[number];
+const jibTactics: JibTactic[] = ['aggressively', 'sweetly', 'cowardly'];
+type JibTactic = 'aggressively' | 'sweetly' | 'cowardly';
 
 interface JibTemplateContext {
 	cost: Bank;
@@ -512,11 +510,11 @@ async function chooseJibTactic(interaction: MInteraction, user: MUser, offer: Re
 
 	await interaction.defer();
 	const response = await interaction.replyWithResponse(
-		await new MessageBuilder()
+		new MessageBuilder()
 			.setContent(offer.content)
 			.addChatHeadImage(offer.head, offer.headContent)
 			.addComponents(buttons)
-			.build()
+			.message
 	);
 	if (!response) return null;
 
@@ -591,7 +589,7 @@ export async function jibUhmzTradeCommand({
 }): Promise<CommandResponse> {
 	const lamp = Items.getItem(itemToTrade);
 	if (!lamp || !customLampIDs.has(lamp.id)) {
-		return 'Jib Uhmz only trades Tiny, Small, Average, Large, and Huge lamps.';
+		return 'Jib Uhmz only trades Small, Average, Large, and Huge lamps.';
 	}
 
 	if (!user.owns(new Bank().add(lamp.id))) {
@@ -607,9 +605,9 @@ export async function jibUhmzTradeCommand({
 		if (!lockedUser.owns(cost)) return `You don't have a ${lamp.name} in your bank anymore.`;
 
 		const lampValue = XPLamps.find(xpLamp => xpLamp.itemID === lamp.id)!.amount;
-		let payoutValue = Math.floor(lampValue * 0.8);
-		if (tactic !== (jibUhmzData.bestTactic as JibTactic)) {
-			if (rng.roll(2)) payoutValue = Math.floor(payoutValue * 0.9);
+		let payoutValue = Math.floor(lampValue * 0.85);
+		if (tactic !== jibUhmzData.bestTactic) {
+			if (rng.roll(3)) payoutValue = Math.floor(payoutValue * 0.9);
 			if (rng.roll(10)) payoutValue = Math.floor(payoutValue * 0.85);
 		}
 

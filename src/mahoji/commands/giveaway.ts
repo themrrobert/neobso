@@ -99,7 +99,7 @@ export const giveawayCommand = defineCommand({
 			options: []
 		}
 	],
-	run: async ({ options, user, guildId, interaction, channelId }): CommandResponse => {
+	run: async ({ options, user, guildId, interaction, channelId, user: apiUser }): CommandResponse => {
 		if (user.isIronman) return 'You cannot do giveaways!';
 
 		let maxGiveaways = 10;
@@ -173,7 +173,7 @@ export const giveawayCommand = defineCommand({
 				files: [
 					await makeBankImage({
 						bank,
-						title: `${user.username}'s Giveaway`
+						title: `${apiUser?.username ?? user.username}'s Giveaway`
 					})
 				],
 				allowedMentions: { users: [user.id] }
