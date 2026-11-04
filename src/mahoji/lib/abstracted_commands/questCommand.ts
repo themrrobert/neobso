@@ -76,7 +76,7 @@ export async function questCommand(user: MUser, channelId: string, name?: string
 	if (currentQP >= MAX_QP) {
 		messages.push( 'You already have the maximum amount of Quest Points.');
 		zippyGrind = true;
-		if (!alreadyHasZippy) {
+		if (alreadyHasZippy) {
 			return messages.join(' ');
 		}
 	}
@@ -88,7 +88,7 @@ export async function questCommand(user: MUser, channelId: string, name?: string
 	if (qpFromUnfinishedQuests > 0 && currentQP >= MAX_GLOBAL_QP) {
 		messages.push(`You already have the maximum amount of Quest Points from doing quests, you can get ${qpFromUnfinishedQuests} more from specific quests.`);
 		zippyGrind = true;
-		if (!alreadyHasZippy) {
+		if (alreadyHasZippy) {
 			return messages.join(' ');
 		}
 	}
