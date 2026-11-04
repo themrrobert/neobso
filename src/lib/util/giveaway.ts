@@ -46,13 +46,13 @@ async function pickRandomGiveawayWinner(giveaway: Giveaway): Promise<MUser | nul
 		FROM giveaway
 		WHERE id = ${giveaway.id}
 	)
-															SELECT id
-															FROM users
-															WHERE id IN (SELECT user_id FROM giveaway_users)
-															  AND (${giveaway.allow_ironmen} = true OR "minion.ironman" = false)
-															  AND id != ${giveaway.user_id}
-															ORDER BY random()
-															LIMIT 1;
+		SELECT id
+		FROM users
+		WHERE id IN (SELECT user_id FROM giveaway_users)
+		  AND (${giveaway.allow_ironmen} = true OR "minion.ironman" = false)
+		  AND id != ${giveaway.user_id}
+		ORDER BY random()
+		LIMIT 1;
 	`;
 	const id = result[0]?.id;
 	if (!id) return null;

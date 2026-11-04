@@ -513,8 +513,7 @@ async function chooseJibTactic(interaction: MInteraction, user: MUser, offer: Re
 		new MessageBuilder()
 			.setContent(offer.content)
 			.addChatHeadImage(offer.head, offer.headContent)
-			.addComponents(buttons)
-			.message
+			.addComponents(buttons).message
 	);
 	if (!response) return null;
 
