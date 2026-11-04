@@ -13,6 +13,8 @@ export async function questCommand(user: MUser, channelId: string, name?: string
 		return 'Your minion must not be busy to do a questing trip';
 	}
 
+	const alreadyHasZippy = user.bank.has('Zippy');
+
 	if (name) {
 		const quest = quests.find(q => q.name.toLowerCase() === name.toLowerCase());
 		if (!quest) {
@@ -67,8 +69,16 @@ export async function questCommand(user: MUser, channelId: string, name?: string
 	}
 
 	const currentQP = user.QP;
+	const messages : string[] = [];
+
+	// Set to true if the only benefit is Zippy chance.
+	let zippyGrind = false;
 	if (currentQP >= MAX_QP) {
-		return 'You already have the maximum amount of Quest Points.';
+		messages.push( 'You already have the maximum amount of Quest Points.');
+		zippyGrind = true;
+		if (!alreadyHasZippy) {
+			return messages.join(' ');
+		}
 	}
 
 	const qpFromUnfinishedQuests = sumArr(
@@ -76,7 +86,11 @@ export async function questCommand(user: MUser, channelId: string, name?: string
 	);
 
 	if (qpFromUnfinishedQuests > 0 && currentQP >= MAX_GLOBAL_QP) {
-		return `You already have the maximum amount of Quest Points from doing quests, you can get ${qpFromUnfinishedQuests} more from specific quests.`;
+		messages.push(`You already have the maximum amount of Quest Points from doing quests, you can get ${qpFromUnfinishedQuests} more from specific quests.`);
+		zippyGrind = true;
+		if (!alreadyHasZippy) {
+			return messages.join(' ');
+		}
 	}
 
 	const boosts = [];
@@ -95,6 +109,11 @@ export async function questCommand(user: MUser, channelId: string, name?: string
 		channelId: channelId.toString()
 	});
 	let response = `${user.minionName} is now completing quests, they'll come back in around ${formatTripDuration(user, duration)}.`;
+
+	if (zippyGrind) messages.push('Replaying quests trying to figure out where you missed Zippy.');
+	if (messages.length > 0) {
+		response += `\n\n${messages.join(' ')}`;
+	}
 
 	if (boosts.length > 0) {
 		response += `\n\n**Boosts:** ${boosts.join(', ')}.`;
