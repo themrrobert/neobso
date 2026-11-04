@@ -23,7 +23,7 @@ import { shootingStarsCommand } from '@/mahoji/lib/abstracted_commands/shootingS
 
 async function giveawayButtonHandler(user: MUser, customID: string, interaction: OSInteraction): CommandResponse {
 	const split = customID.split('_');
-	if (split[0] !== 'GIVEAWAY') return { content: 'Invalid giveaway.', ephemeral: true };
+	if (split[0] !== 'GW') return { content: 'Invalid giveaway.', ephemeral: true };
 	const giveawayID = split[2];
 	if (!giveawayID) return { content: 'Invalid giveaway.', ephemeral: true };
 	let giveaway: Giveaway | null = giveawayCache.get(giveawayID) ?? null;
@@ -38,7 +38,7 @@ async function giveawayButtonHandler(user: MUser, customID: string, interaction:
 	if (!giveaway) {
 		return { content: 'Invalid giveaway.', ephemeral: true };
 	}
-	if (split[1] === 'REPEAT') {
+	if (split[1] === 'REP') {
 		if (user.id !== giveaway.user_id) {
 			return {
 				content: "You cannot repeat other peoples' giveaways.",
@@ -67,7 +67,7 @@ async function giveawayButtonHandler(user: MUser, customID: string, interaction:
 		return { content: 'This giveaway has finished.', ephemeral: true };
 	}
 
-	const action = split[1] === 'ENTER' ? 'ENTER' : 'LEAVE';
+	const action = split[1] === 'JOIN' ? 'JOIN' : 'BYE';
 
 	if (user.isIronman && !giveaway.allow_ironmen) {
 		return {
@@ -80,14 +80,14 @@ async function giveawayButtonHandler(user: MUser, customID: string, interaction:
 		return { content: 'You cannot join your own giveaway.', ephemeral: true };
 	}
 
-	if (action === 'ENTER') {
+	if (action === 'JOIN') {
 		if (giveaway.users_entered.includes(user.id)) {
 			return {
 				content: 'You are already entered in this giveaway.',
 				ephemeral: true
 			};
 		}
-		await prisma.giveaway.update({
+		const updatedGiveaway = await prisma.giveaway.update({
 			where: {
 				id: giveaway.id
 			},
@@ -97,7 +97,8 @@ async function giveawayButtonHandler(user: MUser, customID: string, interaction:
 				}
 			}
 		});
-		updateGiveawayMessage(giveaway);
+		giveawayCache.set(updatedGiveaway.id, updatedGiveaway);
+		void updateGiveawayMessage(updatedGiveaway);
 		return { content: 'You are now entered in this giveaway.', ephemeral: true };
 	}
 	if (!giveaway.users_entered.includes(user.id)) {
@@ -106,7 +107,7 @@ async function giveawayButtonHandler(user: MUser, customID: string, interaction:
 			ephemeral: true
 		};
 	}
-	await prisma.giveaway.update({
+	const updatedGiveaway = await prisma.giveaway.update({
 		where: {
 			id: giveaway.id
 		},
@@ -114,7 +115,8 @@ async function giveawayButtonHandler(user: MUser, customID: string, interaction:
 			users_entered: uniqueArr(removeFromArr(giveaway.users_entered, user.id))
 		}
 	});
-	updateGiveawayMessage(giveaway);
+	giveawayCache.set(updatedGiveaway.id, updatedGiveaway);
+	void updateGiveawayMessage(updatedGiveaway);
 	return { content: 'You left the giveaway.', ephemeral: true };
 }
 
@@ -249,7 +251,7 @@ async function globalButtonInteractionHandler({
 	const user = interaction.user;
 	if (id.includes(InteractionID.Commands.RepeatTrip)) return repeatTripHandler(user, id, interaction);
 
-	if (id.includes('GIVEAWAY_')) return giveawayButtonHandler(user, id, interaction);
+	if (id.startsWith('GW_')) return giveawayButtonHandler(user, id, interaction);
 	if (id.includes('DONATE_IC')) return ItemContracts.donateICHandler(interaction);
 	if (id.startsWith('GPE_')) return handleGearPresetEquip(user, id, interaction);
 	if (id.startsWith('PTR_')) return handlePinnedTripRepeat(user, id, interaction);
