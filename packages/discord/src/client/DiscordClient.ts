@@ -51,8 +51,8 @@ import {
 	type DiscordClientEventsMap,
 	type DiscordClientOptions,
 	type SendableMessage,
-	sendableMsgToApiEdit,
 	sendableMsgToApiCreate,
+	sendableMsgToApiEdit,
 	type UserUsernameFetcher,
 	type ValidAPIChannel
 } from './types.js';

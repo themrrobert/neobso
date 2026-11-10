@@ -1,8 +1,9 @@
-import { ButtonBuilder, ButtonStyle, collectSingleInteraction } from '@oldschoolgg/discord';
-import { getNextUTCReset, noOp, sleep, Time } from '@oldschoolgg/toolkit';
+import { ButtonBuilder, ButtonStyle, collectSingleInteraction, SpecialResponse } from '@oldschoolgg/discord';
+import { getNextUTCReset, sleep, Time } from '@oldschoolgg/toolkit';
 import { Bank, type Item, type ItemBank, Items, itemID, resolveItems } from 'oldschooljs';
 import { clamp } from 'remeda';
 
+import type { MessageBuilderClass } from '@/discord/MessageBuilder.js';
 import { JibUhmzHeads } from '@/lib/canvas/chatHeadImage.js';
 import jibUhmzData from '@/lib/resources/jibumhz.json' with { type: 'json' };
 import { type SkillNameType, SkillsArray } from '@/lib/skilling/types.js';
@@ -510,10 +511,11 @@ async function chooseJibTactic(interaction: MInteraction, user: MUser, offer: Re
 
 	await interaction.defer();
 	const response = await interaction.replyWithResponse(
-		new MessageBuilder()
+		await new MessageBuilder()
 			.setContent(offer.content)
 			.addChatHeadImage(offer.head, offer.headContent)
-			.addComponents(buttons).message
+			.addComponents(buttons)
+			.build()
 	);
 	if (!response) return null;
 
@@ -536,18 +538,48 @@ async function chooseJibTactic(interaction: MInteraction, user: MUser, offer: Re
 	return tacticsByButton[picked.customId!] ?? null;
 }
 
-async function sendJibDelayedCounting({
-	channelId,
+type JibUhmzDelayMode = 0 | 1 | 2;
+
+async function getJibUhmzDelayMode(): Promise<JibUhmzDelayMode> {
+	const clientSettings = await ClientSettings.fetch({ extraSettings: true });
+	const delayMode = (clientSettings.extraSettings as Record<string, unknown> | null)?.jibuhmzDelayMode;
+	return delayMode === 1 || delayMode === 2 ? delayMode : 0;
+}
+
+function jibTradeResultMessage({
+	user,
+	tactic,
 	context,
+	payoutSpeech,
 	rng
 }: {
-	channelId: string;
+	user: MUser;
+	tactic: JibTactic;
 	context: JibTemplateContext;
+	payoutSpeech: string;
 	rng: RNGProvider;
 }) {
-	if (!rng.roll(10)) return;
-	const webhookPermissions = await Cache.getWebhookPermissions(channelId);
-	if (!webhookPermissions.can_create_webhook) return;
+	return new MessageBuilder()
+		.setContent(
+			`${user} ${tactic} negotiated with Jib Uhmz, offering ${context.cost} and receiving ${context.loot} in return.`
+		)
+		.addChatHeadImage(rng.pick(JibUhmzHeads), payoutSpeech);
+}
+
+async function sendJibDelayedCounting({
+	context,
+	delayMode,
+	interaction,
+	rng,
+	tradeResult
+}: {
+	context: JibTemplateContext;
+	delayMode: JibUhmzDelayMode;
+	interaction: MInteraction;
+	rng: RNGProvider;
+	tradeResult: MessageBuilderClass;
+}) {
+	if (!rng.roll(10)) return false;
 
 	const lines = rng.pick(jibUhmzData.delayedCountingMessages);
 	const joined = lines.join('\u0000');
@@ -557,30 +589,39 @@ async function sendJibDelayedCounting({
 		countSequence: makeBrokenCountSequence(rng, countTokenQuantity)
 	}).split('\u0000');
 
-	await globalClient.sendMessageOrWebhook(
-		channelId,
-		new MessageBuilder().addChatHeadImage(rng.pick(JibUhmzHeads), content[0])
-	);
-	await sleep(rng.pick([3, 4, 5, 6]) * Time.Second);
-	await globalClient.sendMessageOrWebhook(
-		channelId,
-		new MessageBuilder().addChatHeadImage(rng.pick(JibUhmzHeads), content[1])
-	);
-	await sleep(rng.pick([5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]) * Time.Second);
-	await globalClient.sendMessageOrWebhook(
-		channelId,
-		new MessageBuilder().addChatHeadImage(rng.pick(JibUhmzHeads), content[2])
-	);
+	const firstDelay = rng.pick([3, 4, 5, 6]) * Time.Second;
+	const secondDelay = rng.pick([5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]) * Time.Second;
+
+	if (delayMode === 0) {
+		await interaction.followUp(new MessageBuilder().addChatHeadImage(rng.pick(JibUhmzHeads), content[0]));
+		await sleep(firstDelay);
+		await interaction.followUp(new MessageBuilder().addChatHeadImage(rng.pick(JibUhmzHeads), content[1]));
+		await sleep(secondDelay);
+		await interaction.followUp(new MessageBuilder().addChatHeadImage(rng.pick(JibUhmzHeads), content[2]));
+		await interaction.followUp(tradeResult);
+		return true;
+	}
+
+	const followUp = await interaction.followUp({ content: content[0] });
+	await sleep(firstDelay);
+	await interaction.editFollowUp(followUp.id, { content: content[1] });
+	await sleep(secondDelay);
+	await interaction.editFollowUp(followUp.id, { content: content[2] });
+
+	if (delayMode === 1) {
+		await interaction.followUp(tradeResult);
+	} else {
+		await interaction.editFollowUp(followUp.id, tradeResult);
+	}
+	return true;
 }
 
 export async function jibUhmzTradeCommand({
-	channelId,
 	interaction,
 	itemToTrade,
 	rng,
 	user
 }: {
-	channelId: string;
 	interaction: MInteraction;
 	itemToTrade: string;
 	rng: RNGProvider;
@@ -596,12 +637,21 @@ export async function jibUhmzTradeCommand({
 	}
 
 	const tactic = await chooseJibTactic(interaction, user, jibOffer(rng, rng.pick(jibTactics), lamp));
-	if (!tactic) return 'Jib Uhmz loses interest and vanishes back into his crack.';
-	if (tactic === 'run') return 'You run. Jib Uhmz hisses about his precious lamps from somewhere behind the wall.';
+	if (!tactic) {
+		await interaction.followUp({ content: 'Jib Uhmz loses interest and vanishes back into his crack.' });
+		return SpecialResponse.RespondedManually;
+	}
+	if (tactic === 'run') {
+		await interaction.followUp({
+			content: 'You run. Jib Uhmz hisses about his precious lamps from somewhere behind the wall.'
+		});
+		return SpecialResponse.RespondedManually;
+	}
 
-	return user.withLock('jibuhmz_trade', async lockedUser => {
+	const delayMode = await getJibUhmzDelayMode();
+	const trade = await user.withLock('jibuhmz_trade', async lockedUser => {
 		const cost = new Bank().add(lamp.id);
-		if (!lockedUser.owns(cost)) return `You don't have a ${lamp.name} in your bank anymore.`;
+		if (!lockedUser.owns(cost)) return null;
 
 		const lampValue = XPLamps.find(xpLamp => xpLamp.itemID === lamp.id)!.amount;
 		let payoutValue = Math.floor(lampValue * 0.85);
@@ -618,10 +668,21 @@ export async function jibUhmzTradeCommand({
 
 		const context: JibTemplateContext = { cost, lamp, loot };
 		const payoutSpeech = renderJibTemplate(rng, rng.pick(jibUhmzData.payoutMessages), context);
-		void sendJibDelayedCounting({ channelId, context, rng }).catch(noOp);
-
-		return new MessageBuilder()
-			.setContent(`${lockedUser} traded ${cost} with Jib Uhmz and received ${loot}.`)
-			.addChatHeadImage(rng.pick(JibUhmzHeads), payoutSpeech);
+		return { context, payoutSpeech, user: lockedUser };
 	});
+	if (!trade) {
+		await interaction.followUp({ content: `You don't have a ${lamp.name} in your bank anymore.` });
+		return SpecialResponse.RespondedManually;
+	}
+
+	const tradeResult = jibTradeResultMessage({ ...trade, tactic, rng });
+	const delayed = await sendJibDelayedCounting({
+		context: trade.context,
+		delayMode,
+		interaction,
+		rng,
+		tradeResult
+	});
+	if (!delayed) await interaction.followUp(tradeResult);
+	return SpecialResponse.RespondedManually;
 }

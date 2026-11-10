@@ -69,12 +69,12 @@ export async function questCommand(user: MUser, channelId: string, name?: string
 	}
 
 	const currentQP = user.QP;
-	const messages : string[] = [];
+	const messages: string[] = [];
 
 	// Set to true if the only benefit is Zippy chance.
 	let zippyGrind = false;
 	if (currentQP >= MAX_QP) {
-		messages.push( 'You already have the maximum amount of Quest Points.');
+		messages.push('You already have the maximum amount of Quest Points.');
 		zippyGrind = true;
 		if (alreadyHasZippy) {
 			return messages.join(' ');
@@ -86,7 +86,9 @@ export async function questCommand(user: MUser, channelId: string, name?: string
 	);
 
 	if (qpFromUnfinishedQuests > 0 && currentQP >= MAX_GLOBAL_QP) {
-		messages.push(`You already have the maximum amount of Quest Points from doing quests, you can get ${qpFromUnfinishedQuests} more from specific quests.`);
+		messages.push(
+			`You already have the maximum amount of Quest Points from doing quests, you can get ${qpFromUnfinishedQuests} more from specific quests.`
+		);
 		zippyGrind = true;
 		if (alreadyHasZippy) {
 			return messages.join(' ');

@@ -523,7 +523,6 @@ export const minionCommand = defineCommand({
 		}
 		if (options.lamp?.trade) {
 			return jibUhmzTradeCommand({
-				channelId,
 				interaction,
 				itemToTrade: options.lamp.trade.lamp,
 				rng,

@@ -198,6 +198,7 @@ model ClientStorage {
 
   turaels_trials_cost_bank Json @default("{}") @db.Json
   turaels_trials_loot_bank Json @default("{}") @db.Json
+  extraSettings            Json @default("{}") @db.JsonB
 
   @@map("clientStorage")
 }

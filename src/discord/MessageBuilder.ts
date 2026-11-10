@@ -103,7 +103,7 @@ export class MessageBuilderClass {
 		return this;
 	}
 
-	async build(): Promise<SendableMessage> {
+	async build(): Promise<BaseSendableMessage> {
 		if (this.chatHeadImagePromise) {
 			const chatHeadImage = await this.chatHeadImagePromise;
 			this.addFile(chatHeadImage);

@@ -186,6 +186,14 @@ export class BaseInteraction {
 		return this.sendWebhookCreate(options);
 	}
 
+	async editFollowUp(
+		messageId: string,
+		options: SendableMessage
+	): Promise<RESTPostAPIInteractionCallbackWithResponseResult> {
+		if (!this._deferred && !this._replied) throw new Error('editFollowUp: InteractionNotReplied');
+		return this.sendWebhookEdit(messageId, options);
+	}
+
 	async fetchReply(message: string | '@original' = '@original'): Promise<APIMessage> {
 		return this.rest.get(Routes.webhookMessage(this.applicationId, this.token, message), {
 			auth: false
