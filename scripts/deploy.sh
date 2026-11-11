@@ -95,8 +95,8 @@ fi
 record "Pull complete: $BOT_REMOTE/$BOT_BRANCH schema_changed=$schema_changed"
 
 if $backup; then
-	~/scripts/cyr_backup.sh "$BOT_NAME" "$after_pull"
-	record "Backup complete: $BOT_NAME $after_pull"
+	~/scripts/cyr_backup.sh --commit="$before_pull" "$BOT_NAME"
+	record "Backup complete: $BOT_NAME $before_pull"
 else
 	record 'Backup skipped by --nobk'
 fi
