@@ -22,8 +22,12 @@ record() {
 	echo "$1"
 }
 fail() {
-	record "FAIL: $1"
-	printf '%s\n' "${RESULTS[@]}" >&2
+	printf '%s\n\t' "${RESULTS[@]}" >&2
+	if [[ -t 1 && "${TERM:-dumb}" != 'dumb' ]] && tput colors >/dev/null 2>&1; then
+		printf '\033[1;31mFAIL:\033[0m \033[0;33m%s\033[0m\n' "$1"
+	else
+		printf 'FAIL: %s\n' "$1"
+	fi
 	exit 1
 }
 line_count() {
