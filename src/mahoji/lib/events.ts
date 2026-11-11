@@ -5,7 +5,7 @@ import { Time } from '@oldschoolgg/toolkit';
 import { TimerManager } from '@sapphire/timer-manager';
 
 import { bulkUpdateCommands } from '@/discord/utils.js';
-import { globalConfig } from '@/lib/constants.js';
+import { Channel, globalConfig, META_CONSTANTS } from '@/lib/constants.js';
 import { initTickers } from '@/lib/tickers.js';
 
 export const onStartup = async () => {
@@ -20,14 +20,19 @@ export const onStartup = async () => {
 		globalConfig.isProduction ? Time.Second * 10 : 0
 	);
 
+	const silentStartupMessage =
+		process.env.SILENT !== undefined &&
+		process.env.SILENT.toLowerCase() !== 'false' &&
+		Number(process.env.SILENT) !== 0;
+
 	if (globalConfig.isProduction) {
-		/*
-globalClient
-			.sendMessage(Channel.GeneralChannel, {
-				content: `I have just turned on!\n\n${META_CONSTANTS.RENDERED_STR}`
-			})
-			.catch(err => Logging.logError(err));
-*/
+		if (!silentStartupMessage) {
+			globalClient
+				.sendMessage(Channel.GeneralChannel, {
+					content: `I have just turned on!\n\n${META_CONSTANTS.RENDERED_STR}`
+				})
+				.catch(err => Logging.logError(err));
+		}
 	} else {
 		// In development, always sync commands on startup.
 		await bulkUpdateCommands();

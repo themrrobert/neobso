@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/deploy-config.sh"
 
 backup=true
-watch=true
+watch=false
 for argument in "$@"; do
 	case "$argument" in
 		--bk) backup=true ;;
@@ -129,6 +129,11 @@ else
 	record 'Prisma database push skipped: schema unchanged'
 fi
 
+if $watch; then
+	bash "$SCRIPT_DIR/deploy-watch.sh" &
+	record "Watcher started: pid=$!"
+fi
+
 err_file="${LOG_DIR}/${BOT_NAME}.err"
 err_before="$(line_count "$err_file")"
 sleep 2
@@ -164,8 +169,3 @@ if (( err_after > err_before )); then
 	fi
 fi
 record "Deploy complete: service=$SERVICE_NAME resets=$resets_before->$resets_after"
-
-if $watch; then
-	bash "$SCRIPT_DIR/deploy-watch.sh" &
-	record "Watcher started: pid=$!"
-fi
